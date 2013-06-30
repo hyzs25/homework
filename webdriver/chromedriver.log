@@ -1,5 +1,5 @@
-[0.035][INFO]:      ChromeDriver 26.0.1383.0 E:\RailsInstaller\Ruby1.9.3\bin\chromedriver.exe
-[0.541][FINE]:      Initializing session with capabilities {
+[0.001][INFO]:      ChromeDriver 26.0.1383.0 E:\RailsInstaller\Ruby1.9.3\bin\chromedriver.exe
+[0.531][FINE]:      Initializing session with capabilities {
    "browserName": "chrome",
    "chrome.detach": true,
    "chromeOptions": {
@@ -14,11 +14,11 @@
    "version": ""
 }
 
-[0.542][INFO]:      Using named testing interface
-[2.472][INFO]:      Connected to Chrome successfully. Version: 28.0.1496.0
-[2.510][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef)
-[2.511][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
+[0.532][INFO]:      Using named testing interface
+[2.369][INFO]:      Connected to Chrome successfully. Version: 28.0.1496.0
+[2.381][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823)
+[2.382][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
    "status": 0,
    "value": {
       "acceptSslCerts": false,
@@ -40,104 +40,125 @@
    }
 }
 
-[2.525][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/url) with params {
-   "url": "file:///E:/homework/webdriver/navs.html"
+[2.396][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/url) with params {
+   "url": "http://www.baidu.com"
 }
 
-[2.525][FINER]:     Waiting for all views to stop loading...
-[2.525][FINER]:     Done waiting for all views to stop loading
-[4.799][FINER]:     Waiting for all views to stop loading...
-[4.801][FINER]:     Done waiting for all views to stop loading
-[4.802][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/url) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
+[2.396][FINER]:     Waiting for all views to stop loading...
+[2.396][FINER]:     Done waiting for all views to stop loading
+[7.559][FINER]:     Waiting for all views to stop loading...
+[7.563][FINER]:     Done waiting for all views to stop loading
+[7.563][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/url) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
    "status": 0,
    "value": {
 
    }
 }
 
-[4.815][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/element) with params {
-   "using": "class name",
-   "value": "nav"
-}
-
-[4.815][FINER]:     Waiting for all views to stop loading...
-[4.816][FINER]:     Done waiting for all views to stop loading
-[4.884][FINER]:     Waiting for all views to stop loading...
-[4.884][FINER]:     Done waiting for all views to stop loading
-[4.885][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/element) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
+[7.566][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/cookie)
+[7.566][FINER]:     Waiting for all views to stop loading...
+[7.566][FINER]:     Done waiting for all views to stop loading
+[7.578][FINER]:     Waiting for all views to stop loading...
+[7.579][FINER]:     Done waiting for all views to stop loading
+[7.579][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
    "status": 0,
-   "value": {
-      "ELEMENT": ":wdc:1371978958828"
-   }
+   "value": [ {
+      "domain": "www.baidu.com",
+      "http_only": false,
+      "name": "BDSVRTM",
+      "path": "/",
+      "secure": false,
+      "value": "4"
+   }, {
+      "domain": ".baidu.com",
+      "http_only": false,
+      "name": "H_PS_PSSID",
+      "path": "/",
+      "secure": false,
+      "value": "1455_2703_1788_2250_2701"
+   }, {
+      "domain": ".baidu.com",
+      "expiry": 2319262778.640058,
+      "http_only": false,
+      "name": "BAIDUID",
+      "path": "/",
+      "secure": false,
+      "value": "56787E5D36BF4A2040D92D323645E127:FG=1"
+   } ]
 }
 
-[4.898][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958828/element) with params {
-   "using": "link text",
-   "value": "About"
-}
-
-[4.898][FINER]:     Waiting for all views to stop loading...
-[4.899][FINER]:     Done waiting for all views to stop loading
-[4.967][FINER]:     Waiting for all views to stop loading...
-[4.970][FINER]:     Done waiting for all views to stop loading
-[4.970][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958828/element) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
-   "status": 0,
-   "value": {
-      "ELEMENT": ":wdc:1371978958829"
-   }
-}
-
-[4.981][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958829/click) with params {
-
-}
-
-[4.981][FINER]:     Waiting for all views to stop loading...
-[4.983][FINER]:     Done waiting for all views to stop loading
-[5.149][FINER]:     Waiting for all views to stop loading...
-[5.151][FINER]:     Done waiting for all views to stop loading
-[5.151][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958829/click) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
+[7.599][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/cookie)
+[7.599][FINER]:     Waiting for all views to stop loading...
+[7.599][FINER]:     Done waiting for all views to stop loading
+[7.605][FINER]:     Waiting for all views to stop loading...
+[7.605][FINER]:     Done waiting for all views to stop loading
+[7.605][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
    "status": 0,
    "value": {
 
    }
 }
 
-[6.159][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/element) with params {
-   "using": "link text",
-   "value": "Home"
-}
-
-[6.159][FINER]:     Waiting for all views to stop loading...
-[6.160][FINER]:     Done waiting for all views to stop loading
-[6.221][FINER]:     Waiting for all views to stop loading...
-[6.222][FINER]:     Done waiting for all views to stop loading
-[6.222][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/element) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
-   "status": 0,
-   "value": {
-      "ELEMENT": ":wdc:1371978958830"
+[7.611][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with params {
+   "cookie": {
+      "name": "BAIDUID",
+      "path": "/",
+      "secure": false,
+      "value": "0173F00E405FDBFA6CAD5C03EA730B81:FG=1"
    }
 }
 
-[6.237][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958830/click) with params {
-
-}
-
-[6.237][FINER]:     Waiting for all views to stop loading...
-[6.238][FINER]:     Done waiting for all views to stop loading
-[6.387][FINER]:     Waiting for all views to stop loading...
-[6.389][FINER]:     Done waiting for all views to stop loading
-[6.389][FINE]:      Command finished (/session/97b6c71a25ff35af2396574141233eef/element/:wdc:1371978958830/click) with response {
-   "sessionId": "97b6c71a25ff35af2396574141233eef",
+[7.611][FINER]:     Waiting for all views to stop loading...
+[7.612][FINER]:     Done waiting for all views to stop loading
+[7.615][FINER]:     Waiting for all views to stop loading...
+[7.616][FINER]:     Done waiting for all views to stop loading
+[7.616][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
    "status": 0,
    "value": {
 
    }
 }
 
-[6.394][FINE]:      Command received (/session/97b6c71a25ff35af2396574141233eef)
-[14.381][INFO]:     Chrome shutdown
+[7.622][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with params {
+   "cookie": {
+      "name": "BDUSS",
+      "path": "/",
+      "secure": false,
+      "value": "3N0RG5IaEZRc1k1WGg0ZUQ3LVoxSkZjR3FSVHhyckt4WU5-YVgzb1FCLTVafmRSQVFBQUFBJCQAAAAAAAAAAAEAAABvHwcBaH..."
+   }
+}
+
+[7.622][FINER]:     Waiting for all views to stop loading...
+[7.623][FINER]:     Done waiting for all views to stop loading
+[7.626][FINER]:     Waiting for all views to stop loading...
+[7.626][FINER]:     Done waiting for all views to stop loading
+[7.626][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/cookie) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[7.634][FINE]:      Command received (/session/1cf138ff70a75dd3552d3089c97ff823/url) with params {
+   "url": "http://www.baidu.com"
+}
+
+[7.634][FINER]:     Waiting for all views to stop loading...
+[7.635][FINER]:     Done waiting for all views to stop loading
+[8.625][FINER]:     Waiting for all views to stop loading...
+[8.682][FINER]:     Done waiting for all views to stop loading
+[8.682][FINE]:      Command finished (/session/1cf138ff70a75dd3552d3089c97ff823/url) with response {
+   "sessionId": "1cf138ff70a75dd3552d3089c97ff823",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[11.686][FINE]:     Command received (/session/1cf138ff70a75dd3552d3089c97ff823)
+[15.987][INFO]:     Chrome shutdown

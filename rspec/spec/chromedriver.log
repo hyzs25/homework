@@ -1,0 +1,61 @@
+[0.002][INFO]:      ChromeDriver 26.0.1383.0 E:\RailsInstaller\Ruby1.9.3\bin\chromedriver.exe
+[0.561][FINE]:      Initializing session with capabilities {
+   "browserName": "chrome",
+   "chrome.detach": true,
+   "chromeOptions": {
+      "detach": true
+   },
+   "cssSelectorsEnabled": true,
+   "javascriptEnabled": true,
+   "nativeEvents": false,
+   "platform": "ANY",
+   "rotatable": false,
+   "takesScreenshot": false,
+   "version": ""
+}
+
+[0.562][INFO]:      Using named testing interface
+[1.483][INFO]:      Connected to Chrome successfully. Version: 28.0.1496.0
+[1.496][FINE]:      Command received (/session/5edaa9395eca92ad0c8ce2e06b46bcbf)
+[1.496][FINE]:      Command finished (/session/5edaa9395eca92ad0c8ce2e06b46bcbf) with response {
+   "sessionId": "5edaa9395eca92ad0c8ce2e06b46bcbf",
+   "status": 0,
+   "value": {
+      "acceptSslCerts": false,
+      "applicationCacheEnabled": false,
+      "browserConnectionEnabled": false,
+      "browserName": "chrome",
+      "chrome.chromedriverVersion": "26.0.1383.0",
+      "cssSelectorsEnabled": true,
+      "databaseEnabled": false,
+      "handlesAlerts": true,
+      "javascriptEnabled": true,
+      "locationContextEnabled": false,
+      "nativeEvents": true,
+      "platform": "windows",
+      "rotatable": false,
+      "takesScreenshot": true,
+      "version": "28.0.1496.0",
+      "webStorageEnabled": true
+   }
+}
+
+[1.508][FINE]:      Command received (/session/5edaa9395eca92ad0c8ce2e06b46bcbf/url) with params {
+   "url": "file:///E:/homework/rspec/spec/status.html"
+}
+
+[1.508][FINER]:     Waiting for all views to stop loading...
+[1.508][FINER]:     Done waiting for all views to stop loading
+[6.764][FINER]:     Waiting for all views to stop loading...
+[6.765][FINER]:     Done waiting for all views to stop loading
+[6.765][FINE]:      Command finished (/session/5edaa9395eca92ad0c8ce2e06b46bcbf/url) with response {
+   "sessionId": "5edaa9395eca92ad0c8ce2e06b46bcbf",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[6.786][FINE]:      Command received (/session/5edaa9395eca92ad0c8ce2e06b46bcbf)
+[16.968][WARNING]:  Chrome still running, terminating...
+[16.968][INFO]:     Chrome shutdown
