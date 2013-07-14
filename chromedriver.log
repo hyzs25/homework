@@ -1,0 +1,272 @@
+[0.001][INFO]:      ChromeDriver 26.0.1383.0 E:\RailsInstaller\Ruby1.9.3\bin\chromedriver.exe
+[0.534][FINE]:      Initializing session with capabilities {
+   "browserName": "chrome",
+   "chrome.detach": true,
+   "chromeOptions": {
+      "detach": true
+   },
+   "cssSelectorsEnabled": true,
+   "javascriptEnabled": true,
+   "nativeEvents": false,
+   "platform": "ANY",
+   "rotatable": false,
+   "takesScreenshot": false,
+   "version": ""
+}
+
+[0.535][INFO]:      Using named testing interface
+[1.275][INFO]:      Connected to Chrome successfully. Version: 28.0.1496.0
+[1.293][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b)
+[1.293][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+      "acceptSslCerts": false,
+      "applicationCacheEnabled": false,
+      "browserConnectionEnabled": false,
+      "browserName": "chrome",
+      "chrome.chromedriverVersion": "26.0.1383.0",
+      "cssSelectorsEnabled": true,
+      "databaseEnabled": false,
+      "handlesAlerts": true,
+      "javascriptEnabled": true,
+      "locationContextEnabled": false,
+      "nativeEvents": true,
+      "platform": "windows",
+      "rotatable": false,
+      "takesScreenshot": true,
+      "version": "28.0.1496.0",
+      "webStorageEnabled": true
+   }
+}
+
+[1.306][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/url) with params {
+   "url": "http://hi.baidu.com/pub/show/createtext"
+}
+
+[1.306][FINER]:     Waiting for all views to stop loading...
+[1.307][FINER]:     Done waiting for all views to stop loading
+[5.138][FINER]:     Waiting for all views to stop loading...
+[5.147][FINER]:     Done waiting for all views to stop loading
+[5.147][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/url) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[5.150][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie)
+[5.150][FINER]:     Waiting for all views to stop loading...
+[5.150][FINER]:     Done waiting for all views to stop loading
+[5.216][FINER]:     Waiting for all views to stop loading...
+[5.217][FINER]:     Done waiting for all views to stop loading
+[5.217][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[5.220][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie) with params {
+   "cookie": {
+      "name": "BAIDUID",
+      "path": "/",
+      "secure": false,
+      "value": "0173F00E405FDBFA6CAD5C03EA730B81"
+   }
+}
+
+[5.220][FINER]:     Waiting for all views to stop loading...
+[5.221][FINER]:     Done waiting for all views to stop loading
+[5.249][FINER]:     Waiting for all views to stop loading...
+[5.249][FINER]:     Done waiting for all views to stop loading
+[5.249][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[5.255][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie) with params {
+   "cookie": {
+      "name": "BDUSS",
+      "path": "/",
+      "secure": false,
+      "value": "3N0RG5IaEZRc1k1WGg0ZUQ3LVoxSkZjR3FSVHhyckt4WU5-YVgzb1FCLTVafmRSQVFBQUFBJCQAAAAAAAAAAAEAAABvHwcBaH..."
+   }
+}
+
+[5.255][FINER]:     Waiting for all views to stop loading...
+[5.255][FINER]:     Done waiting for all views to stop loading
+[5.259][FINER]:     Waiting for all views to stop loading...
+[5.260][FINER]:     Done waiting for all views to stop loading
+[5.260][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/cookie) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[5.266][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/url) with params {
+   "url": "http://hi.baidu.com/pub/show/createtext"
+}
+
+[5.266][FINER]:     Waiting for all views to stop loading...
+[5.271][FINER]:     Done waiting for all views to stop loading
+[6.745][FINER]:     Waiting for all views to stop loading...
+[6.748][FINER]:     Done waiting for all views to stop loading
+[6.748][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/url) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[6.755][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/element) with params {
+   "using": "id",
+   "value": "title"
+}
+
+[6.755][FINER]:     Waiting for all views to stop loading...
+[6.755][FINER]:     Done waiting for all views to stop loading
+[6.782][FINER]:     Waiting for all views to stop loading...
+[6.782][FINER]:     Done waiting for all views to stop loading
+[6.782][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/element) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1373789047109"
+   }
+}
+
+[6.787][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789047109/value) with params {
+   "value": [ "\u53D1\u5E03\u65E5\u5FD7\uFF1A2013-07-14 16:04:07 +0800" ]
+}
+
+[6.787][FINER]:     Waiting for all views to stop loading...
+[6.788][FINER]:     Done waiting for all views to stop loading
+[6.866][WARNING]:   No translation for key code. Code point: 21457
+[6.867][WARNING]:   No translation for key code. Code point: 24067
+[6.867][WARNING]:   No translation for key code. Code point: 26085
+[6.867][WARNING]:   No translation for key code. Code point: 24535
+[6.867][WARNING]:   No translation for key code. Code point: 65306
+[6.967][FINER]:     Waiting for all views to stop loading...
+[6.967][FINER]:     Done waiting for all views to stop loading
+[6.967][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789047109/value) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[8.978][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/execute) with params {
+   "args": [  ],
+   "script": "document.getElementById('ueditor_0').contentWindow.document.body.innerText = '\u4ECA\u5929\u5929\u6C14\u4E0D\u9519'"
+}
+
+[8.978][FINER]:     Waiting for all views to stop loading...
+[8.978][FINER]:     Done waiting for all views to stop loading
+[8.982][FINER]:     Waiting for all views to stop loading...
+[8.982][FINER]:     Done waiting for all views to stop loading
+[8.982][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/execute) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": null
+}
+
+[8.988][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/element) with params {
+   "using": "id",
+   "value": "qPubBtnSubmit"
+}
+
+[8.988][FINER]:     Waiting for all views to stop loading...
+[8.988][FINER]:     Done waiting for all views to stop loading
+[9.015][FINER]:     Waiting for all views to stop loading...
+[9.015][FINER]:     Done waiting for all views to stop loading
+[9.015][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/element) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1373789047110"
+   }
+}
+
+[9.019][FINE]:      Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789047110/click) with params {
+
+}
+
+[9.019][FINER]:     Waiting for all views to stop loading...
+[9.019][FINER]:     Done waiting for all views to stop loading
+[9.091][FINER]:     Waiting for all views to stop loading...
+[9.091][FINER]:     Done waiting for all views to stop loading
+[9.091][FINE]:      Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789047110/click) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[12.100][FINE]:     Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/elements) with params {
+   "using": "class name",
+   "value": "feed-main-box"
+}
+
+[12.100][FINER]:    Waiting for all views to stop loading...
+[12.100][FINER]:    Done waiting for all views to stop loading
+[12.127][FINER]:    Waiting for all views to stop loading...
+[12.127][FINER]:    Done waiting for all views to stop loading
+[12.127][FINE]:     Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/elements) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": [ {
+      "ELEMENT": ":wdc:1373789052454"
+   }, {
+      "ELEMENT": ":wdc:1373789052455"
+   }, {
+      "ELEMENT": ":wdc:1373789052456"
+   }, {
+      "ELEMENT": ":wdc:1373789052457"
+   }, {
+      "ELEMENT": ":wdc:1373789052458"
+   }, {
+      "ELEMENT": ":wdc:1373789052459"
+   }, {
+      "ELEMENT": ":wdc:1373789052460"
+   }, {
+      "ELEMENT": ":wdc:1373789052461"
+   }, {
+      "ELEMENT": ":wdc:1373789052462"
+   }, {
+      "ELEMENT": ":wdc:1373789052463"
+   }, {
+      "ELEMENT": ":wdc:1373789052464"
+   } ]
+}
+
+[12.131][FINE]:     Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789052454/text)
+[12.131][FINER]:    Waiting for all views to stop loading...
+[12.131][FINER]:    Done waiting for all views to stop loading
+[12.168][FINER]:    Waiting for all views to stop loading...
+[12.168][FINER]:    Done waiting for all views to stop loading
+[12.168][FINE]:     Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/element/:wdc:1373789052454/text) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": "\u53D1\u5E03\u65E5\u5FD7\uFF1A2013-07-14 16:04:07 +0800\n\u4ECA\u5929\u5929\u6C14\u4E0D\u9519"
+}
+
+[12.181][FINE]:     Command received (/session/6a19fdc4183540e0b0990e3c48e0509b/window)
+[12.181][FINE]:     Command finished (/session/6a19fdc4183540e0b0990e3c48e0509b/window) with response {
+   "sessionId": "6a19fdc4183540e0b0990e3c48e0509b",
+   "status": 0,
+   "value": {
+
+   }
+}
+
