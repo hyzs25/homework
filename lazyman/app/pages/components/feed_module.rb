@@ -31,7 +31,7 @@ module FeedModule
  		sleep 1
  		self.reply = content
  		self.reply_submit
- 		sleep 1
+ 		sleep 2
  	end
 
 

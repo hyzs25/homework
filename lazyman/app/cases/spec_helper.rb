@@ -42,6 +42,11 @@ RSpec.configure do |c|
 	c.before(:suite) do
 		$navi = LazymanNavigator.new $config
 		$navi.driver.manage.window.maximize
+		@email = '119966710@qq.com'
+    @password = 'hytesting'
+		@l = $navi.goto_login_page
+    @l.login_action(@email,@password)
+    
 	end
 
 	c.after(:suite) do
