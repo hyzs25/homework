@@ -1,7 +1,7 @@
 #encoding:utf-8
 class NoteListPage < LazymanPage
 
-  page_url 'http://page.renren.com/601549975/note'
+  page_url "http://page.renren.com/#{$config.pageid}/note"
   
   #发布日志按钮
   link :note_publish_button, :class => "add"

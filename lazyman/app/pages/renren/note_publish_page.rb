@@ -1,7 +1,7 @@
 #encoding:utf-8
 class NotePublishPage < LazymanPage
 
-	page_url 'http://page.renren.com/601549975/note/new'
+	page_url "http://page.renren.com/#{$config.pageid}/note/new"
 
 	#日志标题
 	text_field :note_title, :id => 'title'

@@ -1,7 +1,7 @@
 #encoding:utf-8
 require File.expand_path 'app/cases/spec_helper'
 
-describe "测试日志模块" , :renren do
+describe "测试日志模块" , :renrenblog do
 
 	before :all do
 		@title = "blog_title #{Time.now.strftime("%Y--%m--%d-%H:%M:%S")}"

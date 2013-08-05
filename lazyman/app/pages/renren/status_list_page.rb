@@ -1,25 +1,19 @@
 #encoding:utf-8
 class StatusListPage < LazymanPage
+	include ReplyModule
 
-	page_url 'http://page.renren.com/601549975/fdoing'
-
-
-	div :status_list, :class => 'feed-list'                 
-
-	h3 :status do |page|   
-		page.status_list_element.h3_element(:index => 0)
-	end
-
-	link :status_delete do |page|
-		page.status_list_element.link_element(:class => 'delete', :index => 0)
-	end
-
-	button :status_delete_ok, :class =>" input-submit"
+	page_url "http://page.renren.com/#{$config.pageid}/channel-statuslist"
+     
+     #最新状态         
+	span :status, :class => 'status-info',:index => 0
+	 #状态删除按钮
+	link :status_delete, :class => 'del-status', :index => 0
+	 #删除确认
+	button :status_delete_ok, :value => '确定'
 
 	def status_delete_action
-		self.status_element.hover
-		self.status_delete_element.focus
 		self.status_delete
+		self.status_delete_ok_element.when_present
 		self.status_delete_ok
 		sleep 1
 		@browser.refresh
