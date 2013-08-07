@@ -1,7 +1,7 @@
 #encoding:utf-8
 class NotePublishPage < LazymanPage
 
-	page_url "http://page.renren.com/#{$config.pageid}/note/new"
+	page_url "http://page.renren.com/jomo/act/note/publish?pid=#{$config.pageid}"
 
 	#日志标题
 	text_field :note_title, :id => 'title'
@@ -14,7 +14,7 @@ class NotePublishPage < LazymanPage
 	end
 
 	#提交按钮
-	button :note_submit, :class => 'input-submit'
+	button :note_submit, :class => 'submit-btn'
 	#提交
 	def note_submit_action title,content
 		self.note_title = title
