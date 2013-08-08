@@ -40,13 +40,26 @@ browser = Watir::Browser.new :chrome
 browser.window.maximize
 browser.goto url
 
-eles = browser.divs(:class => 'news_type2 full_screen')
+sum = browser.divs(:class => 'news_type2 full_screen').size
 
 
-eles.each do |a|
-	t = a.h2.text
-	s = a.p.text
+sum.times do |e|
+js =<<JS
+	 q = document.getElementById("id_geo_banner");
+	 q.style.display = "none";
+JS
+	if browser.div(:id,"id_geo_banner").exists?
+		browser.execute_script js
+	end
+
+	eles = browser.div(:class => 'news_type2 full_screen',:index => e)
+	eles.h2.a.click
+	sleep 1
+	t = browser.h1(:class => 'general with_pic').text
+	s = browser.div(:class => 'text_info text_info_article').text
 	f.write_file t,s
+	browser.back
+	sleep 2
 end  
 
 sleep 3

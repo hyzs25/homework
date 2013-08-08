@@ -1,36 +1,1661 @@
 -------------第1篇文章----------------
 标题:GlassFish OSGi-JavaEE (一): GlassFish与企业级OSGi开发
-内容:本专题将分为九个部分向大家介绍GlassFish OSGi-Java EE相关的知识，本文对GlassFish OSGi-JavaEE做简单的介绍并简要叙述企业级的OSGi开发的现状。
+内容:前言
+欢迎进入GlassFish OSGi-JavaEE专题！自从GlassFish v3开始，一个新的特性被加入到GlassFish中，那就是GlassFish OSGi-JavaEE。本专题将分为九个部分向大家介绍GlassFish OSGi-Java EE相关的知识：
+Part1:对GlassFish OSGi-JavaEE做简单的介绍并简要叙述企业级的OSGi开发的现状。
+Part2:理解GlassFish OSGi/WEB容器并开发和部署一个WEB 应用程序Bundle到GlassFish中。
+相关厂商内容
+Clive Saha，Google分布式系统专家，确认担任QCon上海2013大会演讲嘉宾
+潘晓良 百姓网技术总监、联合创始人确认参与QCon上海2013，分享百姓网高效团队建设经验
+滕振宇，Scrum认证教练(CSC)和认证讲师(CST)唯一华人，确认负责QCon上海出品敏捷专题
+首届QCon上海20个专题确认，80余场分享，全面征集演讲主题
+白皮书下载：Polarion客户成功案例——Swisslog
+相关赞助商
+QCon全球软件开发大会（上海站）2013，特别策划上海特色专题，共计80场深度演讲，诚邀莅临。
+Part3:理解GlassFish OSGi/EJB容器并开发和部署一个EJB 应用程序Bundle到GlassFish中。
+Part4:理解GlassFish OSGi/CDI(上下文依赖注入)规范以及GlassFish OSGi/CDI的实现，同时，展示如何使用GlassFish OSGi/CDI来简化企业级OSGi的开发。
+Part5,Part6:集成EAR和OSGi，其中，Part5会通过集成Apache Aries Application特性来拥抱EAR和OSGi；Part6会通过一个真实的案例来展示如何使用EJB Bundle来桥接EAR和OSGi以达到相同的目的。
+Part7:深入解读GlassFish、HK2和OSGi三者的关系, 同时，对于社区经常提到的问题阐述一个自己的观点。(“HK2在未来将会Dead吗？”)
+Part8:深入理解GlassFish内核(模块的配置、加载以及启动)，同时，以一个案例展示如何扩展GlassFish来加入更多自定义模块。
+Part9:贡献GlassFish OSGi以及OSGi-JavaEE的流程。
+本专题将假定读者拥有GlassFish和OSGi的基本知识，限于篇幅原因，我将不会专门介绍GlassFish和OSGi的基本知识。如果读者刚刚接触GlassFish，建议大家参考以下链接:
+如果读者并不了解OSGi，推荐大家阅读以下的书籍:
+Neil Bartlett’s “OSGi in Practice”
+Richard S. Hall等 “OSGi In Action”
+如果用一句话来定义”什么是 GlassFish OSGi-JavaEE”的话，那么我们可以这样说：
+GlassFish OSGi-JavaEE就是企业级OSGi的GlassFish实现。
+从2005年GlassFish 1.0到现在4.0的发布，GlassFish已经走过了9个年头，在这9年中，GlassFish经历了JavaEE5到JavaEE7的进化，经历了Sun被Oracle的收购，经历了架构上的重大变更……在我看来，最为重要的改变是GlassFish 3.0的内核和设计理念的重大变更，甚至说是一次革命！ 3.0之前，GlassFish是一个不可分割或者说是一个整体化(monolithic)的庞然大物，内核与组件以及各个组件之间紧耦合，缺乏足够灵活的扩展性，启动性能不高。3.0时代，情况发生了根本性的转变，内核依托HK2和OSGi，各个模块完全采用OSGi设计理念，GlassFish变得更加轻量级和模块化，内核与组件以及各个组件之间实现了松耦合，有着更加良好的可扩展性，启动性能有了质的提高，更为重要的是大大提高了可维护性。同时，更多有特点的模块出现了， GlassFish OSGi-JavaEE就是其中之一。而这一切都要归功于OSGi!
+另一方面， 放眼当前世界上其他主流的开源JavaEE应用服务器，如JBOSS 7(现在已经更名为Wildfly), Apache Geronimo 3等均采用模块化的设计理念（尽管JBOSS 7没有直接采用OSGi作为内核），力图使应用服务器瘦身，更加具有可维护性和可扩展性。
+我们已经看到模块化的设计理念在JavaEE应用服务器领域大获成功，OSGi作为模块化设计理念中最具代表性的产物，功不可没！
+本专题并不专门讲述OSGi的基本知识以及如何采用OSGi来设计JavaEE应用服务器，相反，我们探讨如何使用OSGi来开发企业级Java应用。但是，当提到OSGi与企业级Java时，我们势必将会抛出一个问题：为什么企业级Java需要使用OSGi?
+为了回答这个问题，我们需要进一步解答以下的两个重要的问题:
+企业级Java开发有哪些不足？
+借助OSGi能够解决这些不足吗？
+企业级Java开发有哪些不足
+企业级Java是由构建在核心Java上的一系列库、API以及框架松散构成的，并且这些库、API以及框架为开发人员提供了一系列的企业服务，例如，分布式组件开发、事务、持久化访问数据库等。企业级Java已经取得了巨大的成功（无论是 JavaEE 本身还是 Spring 框架），但是，随着企业级Java应用程序的规模和复杂度的不断增加，这些应用程序已经开始变得更加得笨重和庞大，标准Java的一些固有的问题也越发变得严重，有时甚至是致命的。
+classpath地狱
+众所周之，标准Java的classpath是扁平(flat)的结构，也就是说，是以线性顺序在指定的classpath中搜索类。例如，图1中，
+图1: 标准Java中扁平(flat)的classpath结构
+类A有两个不同的版本，放在两个不同的JAR中，对于某些被部署的应用程序来说，也许它们想要使用版本1的类A,对于另一些被部署的应用程序来说，也许它们希望使用版本2的类A。但是，扁平的classpath结构决定了很有可能不会加载版本2的类A，因为版本1的类A将首先被发现和加载。
+对于小的程序，也许我们能够迅速发现这个问题并且通过调整jar包在classpath中的顺序来解决。但是，当应用程序的规模和复杂性日益升级时，这个应用程序的classpath可能非常的大(由几十个甚至几百个JAR构成)，搜索classpath花的时间也会很大，一旦丢失了希望加载的某个类的话，很难在短时间内被发现。以下的一些场景进一步描述了这个问题。
+classpath中缺失了运行时的依赖
+也许因为某种原因，当应用程序运行时，当前应用程序的classpath中缺失了某个依赖。那么，在最好的情形下，能够在运行的早期通过抛出ClassNotFoundException异常发现这样的缺失。但是，在最糟糕的情形下，运行的早期不会发现缺失的依赖（因为没有运行到相关的逻辑），直到数个星期（甚至几年）之后，通过抛出的ClassNotFoundExcept异常才能发现这样的缺失，但是，修补的成本可能会很大，如果你不够走运的话，这样的一个依赖缺失很可能会导致一个已经运行了很长时间的关键任务(Mission-Critical)程序（如股票交易，大型在线购物等）突然崩溃，而你却束手无策。
+classpath中的版本冲突
+也许有一种方式能够回避“依赖突然缺失”的问题，即包装(wrap)所有的依赖到这个应用程序之中(例如:对于WAR来说，我们将依赖放置到到WEB-INF/lib中)。我们暂且不考虑效率问题，因为对于每个应用程序都用到的一些共通的依赖，包装一份拷贝是一种资源的冗余，关键是这种包装的方式未必能够使应用程序正确地运行。想象一下这样一种场景:如果运行在同一个JVM的多个应用程序公用某一项依赖的话，会是什么样的结果呢？
+按照这种包装的方式，这个公用的依赖将会被每个应用程序都包装一份拷贝，当其中一个拷贝首先出现在classpath中并且被加载时,其他的拷贝将被忽略。那么，如果这个公用依赖的版本一致，不会有什么问题。但是，当版本不一致时，一些应用程序将会运行正常，但是另一些应用程序很可能最终会出现” NoSuchMethodError”，因为它们所调用的方法根本不存在(它们所希望依赖的版本被其他版本屏蔽了)。在一些更糟糕的情形下，没有显式的异常或错误抛出，程序看起来也在正常地运行，但是运行的行为是错误的，这并不容易被发现。
+让我们从JavaEE的视角再看一下这样的包装方式，在一个JavaEE环境中，每个实例(例如: GlassFish的Instance)都可能驻留多个应用程序，为了解决“依赖突然缺失”的问题， JavaEE规范建议包装每个应用程序的依赖到该应用程序之中，看起来这是一个理想的解决方案，但是，情况可能更加得糟糕，因为JavaEE应用服务器本身就可能依赖了很多开源的库，而应用程序也可能依赖了相同的这些库。这样的话，即便所有的应用程序都使用了相同版本的库，但因为JavaEE应用服务器使用了不同版本的库，就很可能导致这些应用程序运行异常，但是，这样的问题通常很难发现也很难调试。
+复杂让事情看起来更糟糕
+应用程序在日益变得复杂，问题也在不断地发生。BBC News新闻站点上的一篇文章[1]提到:
+The core of the problem is that the business software used by the institutions has become horrifically complex, according to Lev Lesokhin, strategy chief at New York-based software analysis firm Cast.
+He says developers are good at building new functions, but bad at ensuring nothing goes wrong when the new software is added to the existing mix.
+“Modern computer systems are so complicated you would need to perform more tests than there are stars in the sky to be 100% sure there were no problems in the system,” he explains.
+简单地说，2012年银行系统中发现了许多严重的问题，这些问题导致了支付处理中的损失和其他问题。这篇文章预测了当应用程序变得复杂时，这样的损失将会在未来变得更为普遍。
+就复杂性而言，有两层的含义:
+a. 应用程序的逻辑变得更为复杂
+b. 应用程序的结构变得更为复杂，模块更为庞大
+无论是a还是b，这样的应用程序有很多都是由耦合性很高的代码构成的，用Holly Cummins和Timothy Ward[2]的话来说，这些都是混乱(spaghetti)的代码。下图演示了一个具有混乱代码构成的应用程序:
+图2: 一个带有很少结构化的并且高度相互关联的混乱的应用程序。实线代表着既是编译期的依赖也是运行期的依赖，而虚线仅仅代表运行期的依赖。摘自: “Enterprise OSGi In Action”第一章
+从图2中，不难发现，对于每个对象，很难准确地发现它的每一个依赖以及传递性依赖，更不要说发现这些依赖的版本了。很可能在某个类中，有很多的依赖(这些依赖包括了显式的依赖，也包括了许多隐式的依赖)，对于小规模的应用程序来说，你可能很容易地发现这些依赖，但是，对于一个复杂性很高的应用程序来说，代码很庞大也很难读，那么，想要清晰地识别依赖并不容易。
+对于这些具有混乱代码的工程，当未来试图替换一个依赖的版本时，很有可能造成程序运行不正确，更严重地，导致程序运行崩溃。另外，当试图为程序增加一个新的功能时，因为不能清晰地把握程序的每个部分的依赖关系，只能寄希望于做更多的测试，而这些测试中也许有一些根本没有必要，如果你打个盹想少测试一些，那么就有可能招致新的问题，这也就像BBC News的那篇文章所反映的那样。
+进一步来说，出现混乱代码的根本原因其实就是JAR本身缺乏显式的依赖说明。一个复杂的企业应用可能由多个JAR构成，或者它本身就会被打包成一个JAR，这些JAR不仅依赖标准Java库还依赖了其他的一些JAR。因此，如果要部署这样的企业应用的话，必须也要部署它依赖的其他JAR。例如:Apache JClouds依赖Google Guice和Google Guava等，如果使用JClouds的应用程序的classpath之中没有Guice和Guava的话，那么这个应用程序将不可能正常工作。
+但是，我们如何知道这些依赖和传递依赖呢？如果Apache JClouds有很好的文档说明，列举了这些依赖，那么这不会有什么问题，当然，如果你是一个Maven专家的话，通过Apache JClouds的工程Pom文件，你也能识别出这些依赖。但是，许多库并没有很好的文档说明，而且你可能也不是Maven专家或者这些库根本就不是用Maven这些好的依赖构建工具构建的，那么这些依赖对你来说就是隐式的，当试图使用这些库时，你很可能会遇到ClassNotFoundException。
+正如Neil Bartlett在” No Solution for Complexity?”[3]中提到的那样，我们需要一种方式在大型系统的不同部分创建”防火墙”，当在受到”防火墙”保护的每个部分的外部增加新功能时，能够确保这些受到保护的部分不会被攻击和破坏。这样的话，我们就能够精确地知道系统的任何改变所涉及的范围，然后仅仅针对这些范围做测试，而不是全部。
+另一方面，应用程序的逻辑变得更为复杂，今天的企业应用程序通常要支持并发访问、远程访问、持久化数据、事务操作、组件化和分布式(为了考虑伸缩性和负载均衡等)……毫无疑问, JavaEE已经提供了一系列事实的标准去满足这些需求，并且获得了巨大的成功。
+但是，正如Holly Cummins和Timothy Ward[2]提到的，我们的企业级应用程序带有Web前端、持久化组件、事务组件等，并且运行在多个服务器上，所有的这些组件如何粘合到一起也许并不为团队中每个成员知晓，他们可能仅仅关注自己所编写的那部分。
+另外，随着企业级应用程序划分成越来越多的系统，它们会运行在不同的服务器上，这意味着每个系统运行的classpath、可用的依赖以及应用程序服务器本身的技术实现都可能大相径庭，对于这些互相关联的系统，最好是避免指定它们的依赖来自哪里以及系统的classpath是如何构造的。否则，对其中一个系统做改变很可能对其他系统有很大的影响。
+因此，JavaEE甚至比标准Java更需要为它的应用程序模块化。
+借助OSGi修复这些问题
+当前，OSGi很好地解决了上述的这些不足。简单地说，OSGi使用核心Java中的ClassLoader并扩展JAR清单(manifest)来创建一个比核心Java更具有模块化的系统。
+OSGi是一个大的话题，如果要清晰地理解它，需要更多的篇幅去介绍，如果你是第一次接触OSGi,建议首先阅读[4],这是我见到过的最好的OSGi书籍之一。
+InfoQ曾经推出过一个系列来讨论模块化和OSGi相关的知识：模块化Java简介、模块化Java：静态模块化、模块化Java：动态模块化以及模块化Java：声明式模块化。为了兼顾一些读者(也许他们的时间有限)，我们仅介绍OSGi的几个重要概念，想了解更多信息的读者可以参考以上提及的文献和文章。
+理解OSGi基本概念
+OSGi Bundle和Bundle的版本
+OSGi Bundle是由标准JAR以及在JAR清单中加上一些额外的OSGi元数据所构成。
+OSGi运行时常常被称作”OSGi框架”，用来管理OSGi Bundle的生命周期并构建各个Bundle之间的依赖关系。在OSGi运行时的外面，Bundle和标准JAR没有两样，但是，在OSGi运行时之中，情况则完全不同，一个Bundle中的类能够使用另一个Bundle中类，但是，这里有个前提，那就是另一个Bundle要显式地允许它的类被访问，否则，OSGi运行时将阻止对这个Bundle中类的访问。这个访问规则非常类似Java语言中的可见性修饰符(public,private,protect以及包级私有)。
+OSGi运行时会通过依赖解析，将每个Bundle关联起来，形成一个依赖的图，
+图3: OSGi让各个模块之间的依赖更加清晰。
+摘自: “Enterprise OSGi In Action”第一章
+相比较图2混乱的结构，从图3中，我们能够清晰地识别各个模块之间的依赖，这一切都要归功于OSGi。
+另一方面，最重要的一点是通过Bundle的包导入和导出机制，你不必再担心或猜测在应用程序运行时会丢失哪些依赖，因为，一旦真的丢失了这些依赖，OSGi运行时会检测出丢失的依赖，然后抛出异常，根据异常你能够准确地分析出丢失了哪些依赖以及这些依赖的版本。
+当然，为了完全消除classpath地狱中的版本冲突，OSGi Bundle需要版本化。使用OSGi能够让具有不同版本的库(在OSGi环境中，我们称之为模块或Bundle)以及导出的包共存，同时，对于依赖不同版本的库和包的模块来说，它们能够选择最适合的依赖库。如果依赖的库没有版本化，那么就没有办法知道旧库和新库之间的差异，我们会再次陷入classpath地狱。
+限于篇幅，关于OSGi Bundle元数据和版本化，更多的内容请读者看一下[2]和[4]。
+OSGi的动态性和生命周期管理
+动态性对于软件工程并不是新的概念，但是，它是OSGi的基础和核心。你也许会说，通过反射、动态代理以及URLClassLoader，也能够实现动态性，那么，OSGi为什么会为动态性建立一个新的模型呢？
+简单地说，通过以上的方式来实现动态性势必要利用Java底层的API，而OSGi试图为开发人员提供一种更加方便和友好的方式来达到这一目标。
+Bundle的生命周期
+Bundle不像普通的JAR那样安静地呆在CLASSPATH中，Bundle能够根据需要启动和停止，一旦Bundle启动了，那意味着它的所有导入依赖都被满足了。Bundle的启动和停止过程就像一个状态机一样，通过下图，我们能够清晰地发现Bundle的生命周期中的各个阶段：
+图4: Bundle的生命周期中的各个阶段。
+摘自: “Enterprise OSGi In Action”第一章
+Bundle能够在已安装(Installed)、已解析(Resolved)、正在启动(Starting)、已启动(Active)、正在停止(Stopping)以及已卸载(Uninstalled)这6个状态中进行迁移。
+正在启动(Starting)和正在停止(Stopping)更多的是一个暂态，例如，当启动完成之后，Bundle将进入已启动状态。Bundle处在解析状态的条件是它已经被安装，并且它的所有依赖都被解析或者说被满足。当一个Bundle被卸载时，它不再能够提供包给任何新的Bundle。
+关于OSGi的其他一些概念如服务与服务注册表、ClassLoading等，限于篇幅，没有办法一一介绍，详细的内容也请读者参考[2]和[4]。
+回到我们的问题,也许你会问，既然很多应用服务器厂商已经采用了OSGi作为它们的内核，是否我们可以简单地将企业级Java和OSGi相结合？
+很不幸，答案是否定的，因为一些原因，JavaEE编程模型与OSGi并不兼容，关于这一点，Holly Cummins和Timothy Ward[2]给出了清晰的解释。
+为什么OSGi和JavaEE不能很好地结合？
+框架和类加载
+典型的JavaEE应用服务器会驻留多个企业级Java应用程序，为了在这些应用程序之间提供某种层次的隔离，JavaEE应用服务器会建立一个严格的类加载体系，通过这个类加载体系，应用程序之间相互隔离(这里的隔离指的是应用程序之间不能互相访问各自的资源)，应用程序与应用服务器之间也相互隔离。这个类加载体系基于标准Java的ClassLoader体系[6]。以下是一个典型的JavaEE应用服务器的类加载体系，
+图5: 一个典型的JavaEE应用服务器的类加载体系
+摘自: Neil Bartlett’s “OSGi in Practice”[7]
+如图5所示，每一个ClassLoader仅仅能够加载它自己和它祖先定义的类，它不可能加载到同等层次的其他ClassLoader定义的类。因此，对于一些希望被EJB和WEB共享的类来说，它们必须要放置到更高的层次(例如, EAR ClassLoader)，另外，如果有一些类希望被所有应用程序共享，那么，它们必须要放置到Application ClassLoader中，通常，这是通过配置应用服务器本身来达到的。
+另一方面，从图5我们能够发现应用程序的类不可能很容易地被应用服务器本身的类加载，这似乎不是什么大的问题，但是应用服务器中的一些容器为应用程序提供了插入点或者说”钩子”，通过回调应用程序的代码来完成一些共通的逻辑。因此，应用服务器必须要访问应用程序的类。
+这个问题通过线程上下文ClassLoader(Thread Context ClassLoader)[8]能够回避。通过正确地设置线程上下文ClassLoader，框架能够检索这个ClassLoader，然后访问应用程序以及它的模块中的类。但是，这也意味着，
+线程上下文ClassLoader必须在框架检索它之前在其他地方正确地被设置，但是，在OSGi中，线程上下文ClassLoader通常并不会被设置。
+使用线程上下文ClassLoader完全违反了系统的模块化，不能保证由线程上下文ClassLoader加载的类会匹配你的类空间。关于这一点，可以想象一下，如果线程上下文ClassLoader加载了一个类A的旧版本，而你的类空间希望匹配类A的新版本，那么，这种不匹配将导致大的问题。
+我们提到，在OSGi中，线程上下文ClassLoader常常很少被设置，但是，凡事都不是绝对的，例如，GlassFish OSGi-JavaEE的OSGi/WEB模块就配置了线程上下文ClassLoader来加载一些应用程序Bundle的类。
+关于线程上下文ClassLoader的讨论和使用，我建议读者看一看Neil Bartlett’s “The Dreaded Thread Context Class Loader”[9]以及” OSGi Readiness — Loading Classes”[10]，这两篇文章给出了一些精辟的观点。
+META-INF 服务(META-INF/services)与ServiceLoader模式
+从JDK6开始, 出现了一种能够发现给定接口的所有实现的模式,称之为ServiceLoader[11](注意: 普通的反射无法发现给定接口的所有实现[12])。
+在这种模式下，任何JAR都能够注册一个给定接口的实现并且将实现的名称放置在这个JAR的META-INF/services目录下的一个文件中，该文件的名字要根据所实现的接口来命名。然后，通过ServiceLoader的load方法来获取classpath中的所有接口的实现。例如，我们有一个接口JAR(AInf.jar)，其中定义了一个接口AInf,
+public interface AInf
+{
+long getCount();
+…
+}
+我们再定义一个AInf的实现JAR(AImpl.jar)，其中定义了一个实现类AImpl，
+package sample.serviceLoader.internal
+public Class AImpl implements AInf
+{
+…
+}
+然后，Java客户端通过ServiceLoader获取AInf的所有实现，
+ServiceLoader loader = ServiceLoader.load(AInf.class);
+AInf service = loader.iterator().next();
+这种方式对于标准Java来说已经做得很好了，但是，正如[13]中提到的那样，它有一定的局限性，最明显的是当运行时希望加入新的接口实现时，ServiceLoader模式就不能发挥作用了，也就是说，ServiceLoader不具有动态的可扩展性。
+回到OSGi的话题，当希望将这样的代码移植到OSGi环境中时，问题将变得更多。
+ServiceLoader模式利用了线程上下文ClassLoader去发现META-INF/services目录下的所有的资源。关于线程上下文ClassLoader，我们在上面已经提到，在OSGi的环境中，通常不会定义线程上下文ClassLoader，所以有可能造成ServiceLoader模式失效。
+OSGi环境下，Bundle之间的联系是通过” Import-Package”和”Export-Package”实现的，对于一个给定的导入，只能有一个确定的导出，因此，不可能通过ServiceLoader模式来获取接口的多个实现。
+初始化一个接口的实现一般需要访问实现类的内部细节，例如，我们的AImpl类定义在*..internal包中，对于OSGi来说，Bundle一般都不会导出内部的细节(因为这会打破Bundle的封装性)，因此，ServiceLoader模式也将失效。即便能够导出内部的细节，将客户端绑定到具体的实现，这也会违反松耦合的准则。
+Bundle有动态的生命周期，意味着实现Bundle很可能悄无声息的离开OSGi运行时，但是，ServiceLoader模式并没有提供一种事件机制来通知客户端。
+JavaEE没有实现动态的执行环境
+由于标准Java的种种不足以及JavaEE应用服务器的类加载体系，JavaEE
+并没有实现动态的执行环境，这意味着当你的WEB应用程序或者EJB模块被部
+署并且执行时，你不可能再添加新的Servlet/JSP或者更新EJB模块。应用程序
+所能发挥的范围被绑定在了部署时。
+幸运的是，随着企业级OSGi的出现，OSGi和JavaEE之间的鸿沟已经变得越来越小了。
+企业级OSGi与JavaEE的集成
+2007年6月，OSGi联盟(OSGi Alliance)发布了OSGi Service Platform Release 4.1，在这个Release中，首次加入了面向企业级OSGi的规范，到2013年，OSGi企业专家组(EEG)已经发布了OSGi Enterprise Release 5的最终Draft，在这个Release 5中，加入了更多的面向企业OSGi的服务规范。
+我们必须要指出，如果企业级OSGi不能提供更多在JavaEE中也可用的服务，那么企业级OSGi将变得毫无用处，因为，对于JavaEE来说，已经积累了非常庞大的开发群体，社区已经变得非常成熟，如果企业级OSGi提供了完全不同于JavaEE的规范或做法，那么将对JavaEE社区的开发群体毫无帮助，也不可能得到更多人的认同。
+关于这一点，也正是驱动企业级OSGi不断向前发展的根本所在。
+企业级OSGi的规范很多，覆盖了许多与JavaEE集成的服务。例如，
+WEB应用程序规范
+一个OSGi版本的WEB应用程序规范(chapter 128 in the OSGi Enterprise Release 5 Specification[14])，这个规范的目的是为了部署一个既存的和新的WEB应用程序到运行在OSGi框架中的Servlet容器里，而部署的模型应该类似于JavaEE环境中WEB应用程序的部署。
+这个规范定义了“Web Application Bundle(WAB)”， 它是一个Bundle且与JavaEE中WAR执行同样的角色。WAB使用了OSGi的生命周期以及OSGi的类/资源加载规则而没有使用标准JavaEE环境的加载规则。WAB是常规的Bundle，因此能够使用OSGi框架中的所有特性。
+一个传统的WAR也能够作为WAB进行安装，这是通过清单重写来完成的。关于这一点，GlassFish 4.0已经实现了这个特性。
+JPA服务规范
+Java持久化API是JavaEE中一个重要的规范。JPA提供了一个对象关系映射(ORM)模型，这个模型通过持久化描述符来配置。企业级OSGi的JPA服务规范(chapter 127 in the OSGi Enterprise Release 5 Specification[14])定义了持久化单元如何能够被发布到OSGi框架中、客户端Bundle如何发现这些持久化单元，以及通过OSGi JDBC规范如何能够发现数据库驱动等。
+除了上述两个服务规范之外，还有许多有用的服务规范，如，Java事务服务规范(chapter 123 in the OSGi Enterprise Release 5 Specification[14])以及Blueprint容器规范(chapter 121 in the OSGi Enterprise Release 5 Specification[14])，后者是企业级OSGi中最重要的规范之一，连同Declarative Services规范(chapter 112 in the OSGi Enterprise Release 5 Specification[14])和RFC 193 CDI集成规范[15]，均被视为OSGi中的依赖注入规范，我认为依赖注入规范是企业级OSGi最吸引人的几个规范之一。另外，Service Loader Mediator规范(chapter 133 in the OSGi Enterprise Release 5 Specification[14])的引入正是为了解决我们在上面提到的ServiceLoader模式的一些问题。
+限于本专题的篇幅，不能一一提到每个服务规范，感兴趣的读者可以详细阅读OSGi Enterprise Release 5 Specification[14]。
+接下来，让我们看看企业级OSGi在GlassFish中的实现状况。
+GlassFish中的企业级OSGi
+首先, 我们将再次回顾一下GlassFish与OSGi的关系。其次，我们将看一下GlassFish中的企业级OSGi。
+GlassFish与OSGi的关系
+前面已经提到，自从GlassFish 3.0开始，GlassFish的内核已经完全采用OSGi，并且内核由一系列OSGi Bundle实现。当启动Glassfish时，首先启动OSGi运行时(默认地，OSGi运行时是Apache Felix)，然后，GlassFish通过扩展OSGi框架的配置机制(对于Apache Felix，文档[5]很好地说明了框架的配置属性)，安装并且启动内核Bundle。由于GlassFish是一个实现了JavaEE规范的应用服务器，因此，实现JavaEE规范的各个容器或者说组件都被包装成了OSGi Bundle。那么，当启动GlassFish时，这些容器Bundle也将被安装到OSGi运行时中。
+理解GlassFish OSGi-JavaEE
+GlassFish不仅仅实现了最新的JavaEE规范，而且也暴露JavaEE组件模型和API给OSGi应用程序Bundle，换句话说，OSGi开发人员现在也能够使用JavaEE组件模型(例如: JSF、JSP、EJB、CDI、JPA、JTA等)。这正是企业级OSGi所希望达成的:与JavaEE模型相集成。这对于从事企业级OSGi开发人员来说是非常重要的，因为他们现在既能够使用JavaEE的强大而成熟的特性，又能够达到OSGi模块化以及面向服务所带来的好处。
+在GlassFish中，JavaEE平台的服务(例如: 事务服务、HTTP服务、JMS服务等)都被视为OSGi服务，因此，OSGi应用程序Bundle能够通过OSGi服务注册表去获取这些服务。
+因此，我们给GlassFish OSGi-JavaEE做一个准确的定义:
+“GlassFish开启了OSGi和JavaEE的双向交互。一方面，由OSGi框架管理的OSGi服务能够激活由JavaEE容器管理的JavaEE组件。另一方面，由JavaEE容器管理的JavaEE组件能够激活由OSGi框架管理的OSGi服务。”
+应用程序开发人员能够声明性地导出EJB作为OSGi服务，不必写任何OSGi服务导出代码。这样就允许任何纯的OSGi组件(没有运行在JavaEE上下文中)去发现这个EJB，然后去激活它的业务方法等。类似的，JavaEE组件能够定位由非JavaEE OSGi Bundle提供的OSGi服务，然后使用这些服务。另外，我们在未来专题中将看到，GlassFish扩展了上下文依赖注入(CDI)使得JavaEE组件以类型安全的方式使用动态的OSGi服务更加得便利。以下是GlassFish中OSGi-JavaEE相关的各个模块的位置关系。
+图6: GlassFish中OSGi-JavaEE相关的容器的位置关系
+摘自: OSGi Application Development using GlassFish Server[16]
+在GlassFish OSGi-JavaEE中，基于OSGi Bundle所使用的特性，它们被划分成两类，
+① 普通(plain vanilla)的OSGi Bundle
+这些Bundle不包含任何JavaEE组件也不使用任何JavaEE特性。
+② 使用JavaEE的OSGi Bundle(也称作合成应用程序Bundle)
+这些Bundle包含JavaEE组件。因此，这样的Bundle不仅仅是一个OSGi Bundle，而且是一个JavaEE制品（artifact）。
+对于使用GlassFish OSGi-JavaEE开发的应用程序来说，它们能够使用如下两类API，
+OSGi API
+目前，GlassFish 4.0带有一个符合OSGi R4.2的框架，因此所有OSGi 4.2的核心API都可用，进一步地，GlassFish也带有许多一般性的OSGi服务，例如，
+OSGi配置Admin服务
+OSGi事件Admin服务
+OSGi Declarative服务
+GlassFish使用了来自Apache Felix的这些服务的实现。
+JavaEE API
+一个用户部署的OSGi Bundle不仅仅能够使用OSGi API，而且也能够使用JavaEE API。值得注意的一点是，GlassFish 4是一个实现了JavaEE 7的应用服务器，因此，用户能够使用最新的JavaEE API。但是，并非所有JavaEE API都对各种类型的OSGi Bundle可用，
+类别A: 由JavaEE容器管理的组件，例如，EJB、CDI、Servlet、JSF以及JAX-RS等。这些组件由容器管理，因此，它们对于普通(Plain vanilla)的OSGi Bundle不可用，因为普通的OSGi Bundle不受JavaEE运行时管理。一个OSGi Bundle必须成为合成应用程序Bundle才能够使用这些组件相关的API。
+类别B: 访问平台服务的API，例如，JNDI、 JTA、 JDBC以及JMS等，OSGi Bundle的开发人员也能够使用这些API。典型地，一个Bundle必须使用JNDI去访问服务和资源，但GlassFish实际上使这些平台服务变成了OSGi服务，因此，OSGi应用程序开发人员能够使用OSGi服务API去访问这些平台服务。
+类别C: 功能API，像JAXB、JAXP以及JPA等。
+绝大多数这些API都有一个插入层从而允许应用程序插入不同的实现，典型地，这种可插入性是通过标准Java的ServiceLoader模式来完成的，我们前面提到过，ServiceLoader模式是利用了线程上下文ClassLoader来发现接口的所有实现，因此，必须要设置正确的线程上下文ClassLoader。但是，GlassFish没有这样的限制，对于部署在GlassFish的OSGi Bundle来说，可以安全地使用这些功能API。
+在接下来的各个专题中，我们将详细地理解GlassFish OSGi-JavaEE的各个模块以及演示如何开发合成应用程序Bundle来更好地结合JavaEE和OSGi。
+在Part2中我们将首先看一下GlassFish OSGi/WEB模块，一方面带领大家深入理解OSGi WEB规范，另一方面学习如何部署一个WEB 应用程序Bundle到GlassFish中。
+参考
+[1]: “ Why banks are likely to face more software glitches in 2013”
+[2]: “Enterprise OSGi in Action”
+[3]: ”No Solution for Complexity?”
+[4]: “OSGi In Action”
+[5]: “Apache Felix 框架配置属性”
+[6]: “Inside Class Loaders”
+[7]: Neil Bartlett’s “OSGi in Practice”
+[8]: “Find a way out of the ClassLoader maze”
+[9]: Neil Bartlett’s “The Dreaded Thread Context Class Loader”
+[10]: Neil Bartlett’s “OSGi Readiness — Loading Classes”
+[11]: “ServiceLoader”
+[12]: “How can I get a list of all the implementations of an interface programmatically in Java?”
+[13]: “Creating Extensible Applications With the Java Platform”
+[14]: “OSGi Enterprise Release 5 Specification”
+[15]: “OSGi Early Draft”
+[16]: “OSGi Application Development using GlassFish Server”
+作者简介
+汤泳，高级工程师，硕士，2004年毕业于南京理工大学计算机科学与技术系。现就职于南京富士通南大软件技术有限公司。 2013年2月成为GlassFish OSGi以及OSGi-JavaEE模块的Committer， 同时也是OSGi Alliance的Supporter。除了长期贡献GlassFish, 还积极活跃在多个Apache开源社区，如Apache JClouds、Apache Karaf以及Apache Aries。
+E-Mail: tangyong@cn.fujitsu.com 或者www.tangyong.gf@gmail.com
+感谢池建强对本文的审校。
+给InfoQ中文站投稿或者参与内容翻译工作，请邮件至editors@cn.infoq.com。也欢迎大家通过新浪微博（@InfoQ;）或者腾讯微博（@InfoQ;）关注我们，并与我们的编辑和其他读者朋友交流。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+应用服务器
+OSGi
+Web服务器
+软件开发
+Java
+Glassfish
+Java EE
+相关内容
+GlassFish V3 初探
+解析GlassFish 3中的配置组件
+SAP基于OSGi的Java PaaS实现了对JavaEE6的Web Profile兼容性
+Hibernate添加了对OSGi的支持
+Neil Bartlett访谈：关于OSGi与新发布的Bndtools 2.0
+
+告诉我们您的想法
+社区评论
+Watch Thread
+应用程序的类不可能很容易地被应用服务器本身的类加载 by Yang Lifan Posted 18/07/2013 01:49
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yong Tang Posted 18/07/2013 02:00
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yang Lifan Posted 18/07/2013 02:20
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yong Tang Posted 18/07/2013 02:44
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yang Lifan Posted 18/07/2013 02:53
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yong Tang Posted 18/07/2013 03:07
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yang Lifan Posted 18/07/2013 03:53
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载 by Yong Tang Posted 18/07/2013 04:00
+JBoss 7 也是基于OSGI by Bai Hantsy Posted 19/07/2013 06:02
+OSGi仍然是太复杂太重量级了吧 by 孙 奇辉 Posted 23/07/2013 07:44
+应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 01:49 by Yang Lifan
+如果 应用程序的类不可能很容易地被应用服务器本身的类加载，那应用程序又怎么启动呢
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 02:00 by Yong Tang
+Hi 杨，
+
+感谢Comment， 这里我没有把详细的原因说清楚，我想表达的是，当应用服务器本身希望加载用户应用程序中的类时， 因为应用服务器本身所构建的ClassLoader所在的位置高于用户应用程序的ClassLoader，所以应用程序的类不可能很容易地被应用服务器本身的类加载。 这里并不涉及如何启动应用程序的话题。
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 02:20 by Yang Lifan
+应用服务器中的一些容器为应用程序提供了插入点或者说”钩子”
+
+这句话中的钩子指的是容器所提供的特有的插入点，而非JavaEE标准中的，对吗？
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 02:44 by Yong Tang
+是的，钩子指的是容器或者应用服务器框架所提供的特有的插入点(这些插入点有的使用标注，有的使用XML，有的使用接口...)，但是，对于“非JavaEE标准中”，恰恰相反，有些JavaEE标准，例如CDI，用户应用程序使用CDI，框架和容器通过扫描CDI标注来发现正确的Bean，这就需要框架最终能够加载用户应用程序的类。
+
+你提到的这个问题可以单独开一个专栏来写，呵呵。
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 02:53 by Yang Lifan
+我其实是想问，有多少情况是JavaEE的插入点不够用，而需要直接hook到应用服务器特有的扩展点上呢？
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 03:07 by Yong Tang
+>"我其实是想问，有多少情况是JavaEE的插入点不够用，而需要直接hook到应用服务器特有的扩展点上呢？"
+
+对于这个问题，超出了本话题的范畴，对于GlassFish来说我不能肯定，但是GlassFish 4几乎没有这样的特有扩展点让用户去hook， 因为一旦这样做了， 势必导致应用服务器的移植性问题， 用户的程序也许不能直接在JBOSS 7上运行。
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 03:53 by Yang Lifan
+你提到的这个问题可以单独开一个专栏来写，呵呵
+
+希望也能说说你是怎么成为GlassFish commiter 的
+回复
+回到顶部
+Re: 应用程序的类不可能很容易地被应用服务器本身的类加载
+18/07/2013 04:00 by Yong Tang
+Hi Yang,
+
+确实，这个成为GlassFish Committer的过程可能更为精彩， 我将在“Part9:贡献GlassFish OSGi以及OSGi-JavaEE的流程”中提到，可能将会迟一些，简单地说，成为任何一个社区的Committer的必要条件是： 持续的贡献社区 当贡献达到一定的量时，社区会考虑吸收你作为Committer。
+回复
+回到顶部
+JBoss 7 也是基于OSGI
+19/07/2013 06:02 by Bai Hantsy
+JBoss 7 的框架完全不同于之前的版本，完全模块化，称为 JBoss Modules（这个也应用到其它一些 JBoss 项目），同样是基于OSGI。
+
+对企业应用开发，OSGI 好看不好用。
+回复
+回到顶部
+OSGi仍然是太复杂太重量级了吧
+23/07/2013 07:44 by 孙 奇辉
+看来有前途，那为什么网上有说，SpringSource放弃了OSGI而转向Gradle? 要是哪天Tomcat明确的以OSGi改造，那就标志着osgi的大规模普及。
+Oracle自家的GlassFish,为什么不偿试自家的Jigsaw?
+
+NetBeans的核心是Lookup类库，它扩展了java.util.ServiceLoader，提供了事件通知、可扩展等功能。
+回复
+回到顶部
 
 -------------第2篇文章----------------
 标题:使用MRUnit，Mockito和PowerMock进行Hadoop MapReduce作业的单元测试
-内容:Hadoop MapReduce作业有着独一无二的代码架构，这种代码架构拥有特定的模板和结构。这样的架构会给测试驱动开发和单元测试带来一些麻烦。这篇文章是运用MRUnit的真实范例。
+内容:引言
+Hadoop MapReduce作业有着独一无二的代码架构，这种代码架构拥有特定的模板和结构。这样的架构会给测试驱动开发和单元测试带来一些麻烦。这篇文章是运用MRUnit，Mockito和PowerMock的真实范例。我会介绍
+使用MRUnit来编写Hadoop MapReduce应用程序的JUnit测试
+使用PowerMock和Mockito模拟静态方法
+模拟其他类型中的业务逻辑（译注：也就是编写测试驱动模块）
+查看模拟的业务逻辑是否被调用（译注：测试驱动模块是否运行正常）
+计数器
+测试用例与log4j的集成
+异常处理
+本文的前提是读者应该已经熟悉JUnit 4的使用。
+使用MRUnit可以把测试桩输入到mapper和/或reducer中，然后在JUnit环境中判断是否通过测试。这个过程和任何JUnit测试一样，你可以调试你的代码。MRUnit中的MapReduce Driver可以测试一组Map/Reduce或者Combiner。 PipelineMapReduceDriver可以测试Map/Reduce作业工作流。目前，MRUnit还没有Partitioner对应的驱动。MRUnit使开发人员在面对Hadoop特殊的架构的时候也能进行TDD和轻量级的单元测试。
+实例
+下面的例子中，我们会处理一些用来构建地图的路面数据。输入的数据包括线性表面（表示道路）和交叉点（表示十字路口）。Mapper会处理每条路面数据并把它们写入HDFS文件系统，并舍弃诸如十字路口之类的非线性路面数据。我们还会统计并打印所有输入的非路面数据的数量。为了调试方便，我们也会额外打印路面数据的数量。
+public class MergeAndSplineMapper extends Mapper<LongWritable, BytesWritable, LongWritable, BytesWritable> {
+  private static Logger LOG = Logger.getLogger(MergeAndSplineMapper.class);
+  enum SurfaceCounters {
+          ROADS, NONLINEARS, UNKNOWN
+  }     
+  @Override
+  public void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
+           // A list of mixed surface types
+           LinkSurfaceMap lsm = (LinkSurfaceMap) BytesConverter.bytesToObject(value.getBytes());         
+           List<RoadSurface> mixedSurfaces = lsm.toSurfaceList();        
+           for (RoadSurface surface : mixedSurfaces)  {
+                    Long surfaceId = surface.getNumericId();
+                    Enums.SurfaceType surfaceType = surface.getSurfaceType();             
+                    if ( surfaceType.equals(SurfaceType.INTERSECTION)  )  {
+                              // Ignore non-linear surfaces.
+                              context.getCounter(SurfaceCounters.NONLINEARS).increment(1);
+                              continue;
+                    }
+                    else if ( ! surfaceType.equals(SurfaceType.ROAD) ) {
+                             // Ignore anything that wasn’t an INTERSECTION or ROAD, ie any future additions.
+                             context.getCounter(SurfaceCounters.UNKNOWN).increment(1);
+                             continue;
+                    }
+             
+                    PopulatorPreprocessor.processLinearSurface(surface);
+             
+                    // Write out the processed linear surface.
+                    lsm.setSurface(surface);
+                    context.write(new LongWritable(surfaceId), new BytesWritable(BytesConverter.objectToBytes(lsm)));
+                    if (LOG.isDebugEnabled()) {
+                              context.getCounter(SurfaceCounters.ROADS).increment(1);
+                    }
+           }
+  }
+}
+下面是单元测试代码，这段代码中用到了MRUnit，Mockito和PowerMock。
+相关厂商内容
+文章：从百度云看云计算在互联网的落地实践
+用SiteApp免费帮你生成WebApp站点适配到移动端
+Clive Saha，Google分布式系统专家，确认担任QCon上海2013大会演讲嘉宾
+潘晓良 百姓网技术总监、联合创始人确认参与QCon上海2013，分享百姓网高效团队建设经验
+滕振宇，Scrum认证教练(CSC)和认证讲师(CST)唯一华人，确认负责QCon上海出品敏捷专题
+相关赞助商
+QCon全球软件开发大会（上海站）2013，特别策划上海特色专题，共计80场深度演讲，诚邀莅临。
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(PopulatorPreprocessor.class)
+public class MergeAndSplineMapperTest {
+ 
+  private MapDriver<LongWritable, BytesWritable, LongWritable, BytesWritable> mapDriver;
+  @Before
+         public void setUp() {
+           MergeAndSplineMapper mapper = new MergeAndSplineMapper();
+           mapDriver = new MapDriver<LongWritable, BytesWritable, LongWritable, BytesWritable>();
+           mapDriver.setMapper(mapper);
+  }
+     
+  @Test
+  public void testMap_INTERSECTION() throws IOException {
+           LinkSurfaceMap lsm = new LinkSurfaceMap();
+           RoadSurface rs = new RoadSurface(Enums.RoadType.INTERSECTION);
+           byte[] lsmBytes = append(lsm, rs);       
+           PowerMockito.mockStatic(PopulatorPreprocessor.class);         
+           mapDriver.withInput(new LongWritable(1234567), new BytesWritable(lsmBytes));
+           mapDriver.runTest();
+ 
+           Assert.assertEquals("ROADS count incorrect.", 0,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.ROADS).getValue());
+           Assert.assertEquals("NONLINEARS count incorrect.", 1,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.NONLINEARS).getValue());
+           Assert.assertEquals("UNKNOWN count incorrect.", 0,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.UNKNOWN).getValue());
+         
+           PowerMockito.verifyStatic(Mockito.never());
+           PopulatorPreprocessor.processLinearSurface(rs);
+  }      
+
+  @Test
+  public void testMap_ROAD() throws IOException {
+           LinkSurfaceMap lsm = new LinkSurfaceMap();
+           RoadSurface rs = new RoadSurface(Enums.RoadType.ROAD);
+           byte[] lsmBytes = append(lsm, rs);
+                 
+                  // save logging level since we are modifying it.
+                  Level originalLevel = Logger.getRootLogger().getLevel();
+                Logger.getRootLogger().setLevel(Level.DEBUG);
+           PowerMockito.mockStatic(PopulatorPreprocessor.class);
+        
+           mapDriver.withInput(new LongWritable(1234567), new BytesWritable(lsmBytes));
+           mapDriver.withOutput(new LongWritable(1000000), new BytesWritable(lsmBytes));
+           mapDriver.runTest();
+ 
+           Assert.assertEquals("ROADS count incorrect.", 1,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.ROADS).getValue());
+           Assert.assertEquals("NONLINEARS count incorrect.", 0,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.NONLINEARS).getValue());
+           Assert.assertEquals("UNKNOWN count incorrect.", 0,
+                                     mapDriver.getCounters().findCounter(SurfaceCounters.UNKNOWN).getValue());
+         
+           PowerMockito.verifyStatic(Mockito.times(1));
+           PopulatorPreprocessor.processLinearSurface(rs);
+                  // set logging level back to it's original state so as not to affect other tests
+                  Logger.getRootLogger().setLevel(originalLevel);
+ }
+}
+详解
+上面的代码中，我们仅仅检测数据的ID和类型，舍弃非路面数据，进行计数，以及处理路面数据。让我们来看一下第一个测试用例。
+testMap_INTERSECTION
+这个测试用例的预期结果应该是
+SurfaceCounters.NONLINEARS 类型计数器应该自增。
+for循环应该可以正常工作，即使没有运行到循环体中的PopulatorPreprocessor.processLinearSurface(surface)方法。
+另外两种计数器SurfaceCounters.ROADS和SurfaceCounters.UNKNOWN 不会自增。
+这是一个mapper的测试，所以我们先初始化一个mapper的驱动。注意四个类型参数必须与测试目标的类型参数匹配。
+private MapDriver<LongWritable, BytesWritable, LongWritable, BytesWritable> mapDriver;
+         @Before  
+         public void setUp() {          
+                  MergeAndSplineMapper mapper = new MergeAndSplineMapper();
+                  mapDriver = new MapDriver<LongWritable, BytesWritable, LongWritable,
+ BytesWritable>();           
+                  mapDriver.setMapper(mapper);         
+        }
+在定义单元测试用例方法的时候使用IOException
+Mapper可能会抛出IOException。在JUnit中，开发人员可以通过catch或throw来处理测试目标代码抛出的异常。注意，这里我们并不是专门测试异常情况，所以，我不建议让测试用例方法去捕捉（catch）测试目标代码的异常，而是让测试目标抛出（throw）它们。如果测试目标发生了异常，测试会失败，而这恰恰是我们想要的结果。如果你并非专门测试异常情况，但是却捕捉了测试目标代码的异常，这往往会造成不必要的麻烦。你大可以抛出这些异常并让测试用例失败。
+@Test
+public void testMap_INTERSECTION() throws IOException {
+然后初始化测试桩。为了测试if-else块，我们要提供路面类型为RoadType.INTERSECTION的数据。
+LinkSurfaceMap lsm = new LinkSurfaceMap();
+RoadSurface rs = new RoadSurface(Enums.RoadType.INTERSECTION);
+byte[] lsmBytes = append(lsm, rs);
+我们用PowerMock来模拟调用类型PopulatorPreprocessor的静态方法。PopulatorPreprocessor是一个拥有业务逻辑的独立的类型。在类级别上，我们用 @RunWith来初始化PowerMock。通过 @PrepareForTest，我们告诉PowerMock去模拟哪个有静态方法的类型。PowerMock支持EasyMock和Mockito。这里我们使用Mockito，所以我们使用了相关类型PowerMockito。我们通过调用PowerMockito.mockStatic来模拟调用静态方法。
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(PopulatorPreprocessor.class)
+ 
+PowerMockito.mockStatic(PopulatorPreprocessor.class);
+输入之前创建的测试桩并且运行mapper。
+mapDriver.withInput(new LongWritable(1234567), new BytesWritable(lsmBytes));
+           mapDriver.runTest();
+最后，查看结果。SurfaceCounters.NONLINEARS 类型的计数器自增了一次，而SurfaceCounters.ROADS 类型的计数器和SurfaceCounters.UNKNOWN类型的计数器没有自增。我们可以用JUnit的assetEquals方法来检测结果。这个方法的第一个参数是一个String类型的可选参数，用来表示断言的错误提示。第二个参数是断言的预期结果，第三个参数是断言的实际结果。assetEquals方法可以输出非常友好的错误提示，它的格式是“expected: <x> but was: <y>.”。比如说，下面第二个断言没有通过的话，我们就可以得到一个错误语句“java.lang.AssertionError: NONLINEARS count incorrect. expected:<1> but was:<0>. “。
+Assert.assertEquals("ROADS count incorrect.", 0,
+ mapDriver.getCounters().findCounter(SurfaceCounters.ROADS).getValue());
+Assert.assertEquals("NONLINEARS count incorrect.", 1,
+ mapDriver.getCounters().findCounter(SurfaceCounters.NONLINEARS).getValue());
+Assert.assertEquals("UNKNOWN count incorrect.", 0,
+ mapDriver.getCounters().findCounter(SurfaceCounters.UNKNOWN).getValue());
+用下面的语句可以检测PopulatorPreprocessor.processLinearSurface(surface)方法没有被调用过。
+PowerMockito.verifyStatic(Mockito.never());
+PopulatorPreprocessor.processLinearSurface(rs);
+testMap_ROAD
+这个测试用例的预期结果应该是
+SurfaceCounters. ROADS 类型计数器应该自增。
+PopulatorPreprocessor.processLinearSurface(surface)方法被调用了。
+另外两种计数器SurfaceCounters. NONLINEARS 和SurfaceCounters.UNKNOWN 不会自增。
+测试驱动模块的初始化与第一个用例相似，但有几点不同。
+初始化一个路面类型的测试桩。
+RoadSurface rs = new RoadSurface(Enums.RoadType.ROAD);
+设置log4j的debug级别。
+在测试目标代码中，只有log4j设置成了debug级别，我们才会打印路面数据。为了测试这个功能点，我们先记录当前的logging级别，然后我们把根logger对象的logging级别设置成debug。
+Level originalLevel = Logger.getRootLogger().getLevel();
+                   Logger.getRootLogger().setLevel(Level.DEBUG)
+最后，我们把logging级别重新设置成原来的级别，这样就不会影响其他测试了。
+Logger.getRootLogger().setLevel(originalLevel);
+我们看一下测试的结果。SurfaceCounters. ROADS 类型的计数器是自增的。另外两个类型的计数器SurfaceCounters. NONLINEARS和SurfaceCounters.UNKNOWN都不会自增。
+ Assert.assertEquals("ROADS count incorrect.", 1,
+         mapDriver.getCounters().findCounter(SurfaceCounters.ROADS).getValue());
+ Assert.assertEquals("NONLINEARS count incorrect.", 0,
+  mapDriver.getCounters().findCounter(SurfaceCounters.NONLINEARS).getValue());
+ Assert.assertEquals("UNKNOWN count incorrect.", 0,
+  mapDriver.getCounters().findCounter(SurfaceCounters.UNKNOWN).getValue());
+使用下面的代码，可以检测出PopulatorPreprocessor.processLinearSurface(surface)被调用了一次。
+PowerMockito.verifyStatic(Mockito.times(1));
+PopulatorPreprocessor.processLinearSurface(rs);
+测试Reducer
+测试reducer和测试mapper的原理是相似的。区别在于我们需要创建一个ReducerDriver，然后把需要测试的reducer赋值给这个ReducerDriver。
+private ReduceDriver<LongWritable, BytesWritable, LongWritable, BytesWritable>
+ reduceDriver;
+     @Before
+     public void setUp() {
+       MyReducer reducer = new MyReducer ();
+       reduceDriver = new ReduceDriver <LongWritable, BytesWritable,
+ LongWritable, BytesWritable>();
+       reduceDriver.setReducer(reducer);
+     }
+配置MAVEN POM
+如果使用JUnit 4，那么还要在Maven的POM.xml配置文件中添加下面的配置项。可以在PowerMock的官方网站上找到Mockito相关的版本信息。
+<dependency>
+                   <groupId>org.apache.mrunit</groupId>
+                   <artifactId>mrunit</artifactId>
+                   <version>0.8.0-incubating</version>
+                   <scope>test</scope>
+             </dependency>
+             <dependency>
+                   <groupId>org.mockito</groupId>
+                   <artifactId>mockito-all</artifactId>
+                   <version>1.9.0-rc1</version>
+                   <scope>test</scope>
+             </dependency>
+             <dependency>
+                   <groupId>org.powermock</groupId>
+                   <artifactId>powermock-module-junit4</artifactId>
+                   <version>1.4.12</version>
+                   <scope>test</scope>
+             </dependency>
+             <dependency>
+                   <groupId>org.powermock</groupId>
+                   <artifactId>powermock-api-mockito</artifactId>
+                   <version>1.4.12</version>
+                   <scope>test</scope>
+                    </dependency>
+在Eclipse中运行
+这个单元测试可以像其他JUnit测试一样运行。下面是在Eclipse中运行测试的示例。
+结论
+MRUnit是一种轻量但非常强大的测试驱动开发的工具。它可以帮助开发人员提高代码测试覆盖率。
+感谢
+我要感谢Boris Lublinsky帮助我完成了项目。还要感谢Miao Li为项目添加了许多MRUnit测试用例。
+查看英文原文：Unit Testing Hadoop MapReduce Jobs With MRUnit, Mockito, & PowerMock
+感谢杨赛对本文的审校。
+给InfoQ中文站投稿或者参与内容翻译工作，请邮件至editors@cn.infoq.com。也欢迎大家通过新浪微博（@InfoQ）或者腾讯微博（@InfoQ）关注我们，并与我们的编辑和其他读者朋友交流。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+数据库
+测试
+大数据
+MapReduce
+单元测试
+自动化测试
+自动化操作
+JUnit
+相关内容
+Apache Crunch：用于简化MapReduce编程的Java库
+Hadoop MapReduce开发最佳实践（上篇）
+优化多核服务器集群中MapReduce的性能和可扩展性
+MapReduce模式、算法和用例
+最新的技术雷达趋势
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
 -------------第3篇文章----------------
 标题:访谈与书评：DSL Engineering
-内容:Markus Völter是"Model-Driven Software Development"一书的合著者之一，最近他出版了一本模型驱动软件开发领域的新书—“DSL Engineering”。
+内容:Markus Völter是"Model-Driven Software Development"一书的合著者之一，最近他出版了一本模型驱动软件开发（model-driven software development ，简称MDSD）领域的新书。 “DSL Engineering”一书专注于领域特定语言的设计与实现（DSLs）。
+DSLs是指那些具有优选的词汇表，并在某一特定领域用于有效描述问题和解决方案的语言。相比之下，像Java这样的通用目的语言（general pupose languages ，简称GPL）可以用于描述相同的问题和解决方案，但是它们最大的特点是需要更加冗长的程序，并且更难以使用工具进行分析，也更难以被领域专家所理解。
+因此，设计良好的DSLs非常适合非编程人员用以在形式上定义业务相关模型。通常，这些模型稍后可以转变为例如GPL源代码或文档这样的工件。
+InfoQ有机会联系到了该书的主要作者Markus Völter和联合作者之一的Christrian Dietrich。
+InfoQ:能分别聊聊你们在DSLs领域的相关经验吗？
+Markus Völter: 我在模型和代码生成相关的领域已经工作了差不多10年。我是从使用基于UML的语言和生成器开始的，但是很快转移到了DSL阵营。特别是在使用现代的语言工作台时，DSL的方式比UML更加强大也更具生产力。总之，我自己花了十年的时间来构建语言、分析器和代码生成器，同时也帮助我的客户做着相同的事情。这些项目包括对AUTOSAR标准的概念验证、用于架构定义的各种DSLs、用于配置助听器和冰箱的DSLs以及在保险业务和需求工程中的DSLs等。在工具方面，我主要使用老当益壮的openArchitectureWare框架、Eclipse EMF/GMF/Xtext以及最近的JetBrains MPS。在最近的两年里，我花了很多的时间用于开发mbeddr系统，这是一个用于基于JetBrains MPS之上的嵌入式软件开发环境，该环境也是基于DSLs的。
+相关厂商内容
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+Martin Thompson，LMAX CTO，大数据处理专家，确认参加QCon上海2013
+首届QCon上海20个专题确认，80余场分享，全面征集演讲主题
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+Christian Dietrich: 我在建模项目方面已经工作了六年以上。我首次接触MDSD是在一个使用UML和专有代码生成器的项目中。从那以后我使用openArchitectureWare以及基于UML和基于EMF的模型做了很多事。在2008年，我发现了oAW Xtext，当时我简直太激动了：相比于曾经使用lex和yacc或者是 antlr， 使用合理的工具来创建文本语言变得如此简单。我开始深入这个框架，自该项目迁移到Eclipse起，我在工作中使用它做了很多的事情。同时，我在业余时间成为了Eclipse Xtext论坛的支持者。我也使用MDSD和DSLs领域的其他一些技术做过一些工作，比如MPS，但主要还是专注于Xtext。
+InfoQ:你们的书覆盖了设计、实现和应用领域特定语言的整个周期。使用DSLs和模型驱动软件开发（MDSD）的最有效点（sweet spot）是什么？
+Markus: 我不认为存在一个所谓最有效的点，这也是为什么本书在它的四个部分中描述了六个不同领域的适应性。这些领域包括需求工程、软件架构、非常特定的应用逻辑、软件实现、将DSLs作为开发者工具以及在软件产品线的环境中使用它们。我在以上的每个领域中都见到过DSLs很棒的使用案例。这里有一些指导方针来帮助你从大致上判断在以上任意一个领域中使用某种DSL是否会成功（当然，除此之外，必须具有足够胜任的开发者）：你是否真正理解你将要创建DSL的所在领域，或者至少有某些方式来逐渐形成这种理解。同样，该领域需要足够多的特定抽象或标记来保证构建和使用DSL取代某种代码库或框架的GPL。另一个使用DSL的绝佳原因是你需要对程序做进一步的分析，而该分析需要静态的（比如编译时）领域层面的语义。再一个原因是你想让非程序员在该领域开发应用（请注意我在这里没有使用“程序”一词），这需要去除掉所有的GPL，因为它会通过代码引入噪声。最后，你越频繁地使用DSL来构建系统，创建DSL的成本将越低（这就是语言工作台的来由），也更容易对DSL创建进行验证。
+InfoQ:另一方面，你是否能给我们一些提示，在什么时候不要使用这些技术？
+Markus: 好的，如果当我先前所描述的标准都不符合的时候，将不适合使用这些技术 :-) 更严肃的是，有一种说法认为任何有用的DSL将不可避免地最终以GPL的形态结束。我的经验告诉我这是不对的，但是，肯定的是如果你在没有真正理解DSL的情况下开始开发DSL将会是一种风险。直到你真正理解了该领域，那么你的DSL将会优美、声明式的并且简单。但是在这个时刻，你可能会尝试将GPLs中的循环、条件判断和所有其他东西添加到DSL中。这确实是个风险。模块化的语言和语言扩展可以对这个风险进行稍许的弥补：使用别的方式来取代开发一种完整的独立DSL，你可以考虑通过使用领域特定的概念对一种例如Java或C这样的基础语言进行增量扩展。用户通常都可以回到Java或C的层面，所以你将不需要为领域中的每个角落提供DSL概念。一些当前的语言工作台（特别是MPS）真的非常擅长此类的语言模块化。我在前面所提到的mbeddr项目通过对这种思想的探索，使用嵌入式软件开发的领域特定概念对C进行了增量扩展。
+InfoQ:这听起来真是两全其美—非常强大。但是这样一来应用开发将会再次成为软件开发者的职责吗？
+Markus: 是的，你说的没错。这些工作针对的是那些了解基础语言的程序员所使用的DSLs。这很好地突出了两种不同风格的DSLs之间的区别：应用领域DSLs原本就是为领域专家准备的；它们只包含了领域概念，理想情况下将不包含别的任何内容。它们通常是被自顶而下（top-down）开发的，也就是说你是从现实世界领域中的概念开始的。与此相对的，如果你愿意，可以使用技术DSLs。他们是为开发者准备的。它们通常通过向GPL“添加”领域特定的抽象进行构建，它们“应该”包含所有该GPL的东西，并且不限制特定的用户使用，但是仍然通过提供较高层面的概念简化了开发。它们通常是通过自底而上（bottom up）的方式开发的，就是说你是从该GPL和现存的方言或模式开始的。
+InfoQ: Christian，你目前正在德国最大的MDSD项目中工作。如果要成功地设计和使用领域特定语言，应该按什么样的步骤进行？
+Christian: 第一步就是理解领域及其概念。如果没有这些知识，你将无法发现正确的抽象。然后，当你为语言定义抽象和具体语法的时候，应该一直着眼于概念的易懂性和清晰的语义。这通常将反复地帮助你进行工作。如果你使用DSLs来生成代码或文档，或者使用解释器来进行一些模拟，那么请使用DSLs中的概念来将这些工件开发在一起。这将帮助你检验抽象语法的质量。如果你将DSL和生成器开发成框架：那么就吃你自己的狗粮吧（译者注：eat your own dog food，俚语，特指公司使用自己生产的产品）。这样一来你就能看到你的DSL究竟是达到了预期的目标还是毫无用处。还有一种观点是在早期就考虑模型的大小和规模从而设计出使用实际模型执行的DSL。使用五行代码的测试文件是不可能发现关于对性能的误解的。
+InfoQ:回顾你这些年所参与的项目，使用DSLs最常见的陷阱是什么？
+Christian: 我认为一个比较常见的陷阱是随着时间的流逝，DSLs要么对于每个特定情况的概念定义过于工程化，导致零抽象，要么变得过于通用成为"GPLish"。用户最终将堕入复杂性的地域。为了削弱这种效果，随着时间的变化我们需要对DSL进行进化。因此你不要畏惧对语言进行重构，特别是你可以通过工具支持来完成这项工作。相比于Xtext，在MPS中更早的进行了重构。另一个常见的陷阱是过于将精力集中在具体的语法上，而忽视了抽象语法和语义。根据我前面提到的，在一个与领域没有接触且没有应用的象牙塔里开发DSLs这一思想是错误的。你必须经常去证明你的DSLs是符合领域需求的。
+InfoQ: Markus，看来使用DSLs和模型驱动方法不可能在一开始就有所回报。你能不能就什么样的项目规模及配置可以受益于MDSD谈谈你的观点？
+Markus: 我无法同意你刚才所说的。我可以在两个小时内构建一个小型的DSL，当然它在第一天就给我带来了回报。理所当然，一个更大型的DSL需要更长的时间去开发，因此它也需要更长的时间来获取回报。这都跟比率有关，所以事实上真的没有特定的规模和配置。我曾看到过由小型团队开发的简易DSL。我同样也看到过花费了大量精力的DSL，估计得跨越产品平台几年甚至是几十年之久的生命周期才能获得回报。尤其是在一开始，较好的想法是从一个简单问题开始，随着投入更多的精力，和平常的项目一样，失败的风险终将会由于那些与大小及规模相关联的众所周知的原因而逐渐变大。再次强调，我喜欢那种对一种基础语言进行增量扩展的方式：它允许你根据需求的增长从而添加更多的领域特定抽象（“三振出局，你将自动化”）。
+InfoQ:在这本书中，提到了三种DSL框架—Xtext, Jetbrains MPS 和 Spoofax。你能详细描述下这些框架之间的区别吗？它们之间可以互相替换吗？它们是否有其独有的场景和用例？
+Markus: 它们三个差别很大，这也是我们在书中选用这三个框架的主要原因。Xtext目前主要用于构建文本的、外部的DSLs。它很成熟、有着很好的支持并且也支持Eclipse EMF，它是现今大部分建模成果的支柱。Spoofax也是基于Eclipse的，但是它并不依赖于EMF。它是荷兰代尔夫特工业大学（TU Delft）开发的一个系统，在它所支持的特性方面更具创新性，比如它具有一种用于名字绑定和作用域选取（scoping）的声明性语言，在语言模块化方面很大程度上超越了Xtext。但是从另一角度来看，它还不是非常普遍。JetBrains MPS则与前两项更加不同。它并不使用普通的文本编辑和文本解析，取而代之的是一种投影方式，通过这种方式每一次的编辑操作会直接修改抽象语法树（AST），你所看到或与之交互的仅仅是投影。这将允许用户使用更加宽泛的标记，包括表格、分数条以及今年晚些时候的各种图形。这同样使得很容易对语言进行扩展，并且可以在单个程序中各自关联成熟的扩展。MPS并不像Xtext那样被广泛使用，但是使用人数正在不断增长。拥有了这三个工具，你便可以构建实用的（bread-and-butter）DSLs了，这些工具可以替换着使用。但是不管则样，它们的偏重点是不同的。举个例子，配合Xbase的Xtext与Xtext的交互操作非常适合于Java生态圈。可以非常容易地构建DSLs来复用Java的类型和表达式，并生成Java代码。Spoofax由一个研究性的小组开发，所以同时也是个研究成果的承载工具，展示了一些它最近的特性。如果你要构建整个语言的生态系统，并且它还具有语言之间的引用、扩展和内嵌等，又或者在需要“奇怪的”领域标记的时候，那么MPS很明显拥有其有效点。很难简略地回答这个问题。我想你应该读读这本书的第三部分，然后就会形成你自己的观点了:-)
+这本书的纸版和PDF都已经可以获取。后者可以通过自愿捐赠的方式下载到。该书目前还没有特定的电子阅读器格式。
+关于图书作者
+Markus Völter 已经在模型驱动软件开发和领域特定语言领域工作了10年之久。他同时也是在该主题方面活跃于各种会议的演讲者。
+  Christian Dietrich 是德国Itemis AG公司的咨询师。Itemis不仅仅提供Eclipse项目 Xtext和Xtend在定义DSLs和通过模型生成工件方面的咨询服务，同时也是这些项目活跃的开发组织。
+  查看英文原文：Interview and Book Review: DSL Engineering
+领域
+架构 & 设计
+语言 & 开发
+专栏
+DSLs
+领域专用语言
+相关内容
+郑晔谈Moco框架的开发：写一个好的内部DSL，写一个表达性好的程序
+研究指出：Clojure、CoffeeScript和Haskell是表现力最强的通用语言
+领域特定语言
+敏捷测试 之 借力DSL
+DevOps之于Prezi
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
 -------------第4篇文章----------------
 标题:两位资深运维谈人生：开发和运维之间要形成你退我进的节奏
-内容:在2013年的QCon北京会场上，两位资深老运维——又拍云存储运维总监邵海杨和腾讯业务运维总监赵建春展开了一场交流，针对上述问题进行了讨论。
+内容:2013年4月的QCon北京会场上，两位在运维界打拼多年的技术男聚首专访间，就“运维人员的终极发展目标”这个话题展开了深入的讨论。他们是：
+邵海杨（个人页面），网名“海洋之心”，系统架构师，业余撰稿人，十多年来一直致力于开源软件及前沿科技的研究和探索，目前在又拍云存储任运维总监。杭州LUG组织者之一。
+赵建春（Coati），腾讯业务运维T4专家工程师，总监，技术运营通道委员。04年大学毕业后加入腾讯，先后参与过交友、音乐、贺卡、QQ空间等业务的开发。06年后和团队一起专注于技术运维，负责腾讯社交网络事业群社区类WEB业务的运维和建设工作至今。经历了业务规模从数十台设备到数万台设备的快速发展历程。过程中Coati在运维环境标准化，业务Set化，运维自动化及多地分布式部署等方面积累了丰富的实战经验。
+运维工程师的终极目标是什么？运维人员在职业发展上有哪些选择？在DevOps趋势滚滚而来的当下，运维应该如何应对，如何与Dev团队形成和谐的步调？下面的对话将尝试对上述问题进行解答。
+InfoQ：今天的话题是海杨选的，整个谈话也由海杨主持。我们今天不谈那些沉闷的话题，而是聊聊运维应该如何规划自己的职业和人生。那，海杨开始吧：）
+相关厂商内容
+文章：从百度云看云计算在互联网的落地实践
+百度App Engine支持PHP、Python、Java和Node.js等多种语言
+Clive Saha，Google分布式系统专家，确认担任QCon上海2013大会演讲嘉宾
+潘晓良 百姓网技术总监、联合创始人确认参与QCon上海2013，分享百姓网高效团队建设经验
+滕振宇，Scrum认证教练(CSC)和认证讲师(CST)唯一华人，确认负责QCon上海出品敏捷专题
+相关赞助商
+QCon全球软件开发大会（上海站）2013，特别策划上海特色专题，共计80场深度演讲，诚邀莅临。
+邵海杨：首先我想说，我们做运维的一定要传递一种正能量给别人。网上很多文章描述运维都用到“苦逼”这个词，有的还编了一个运维的蓝精灵之歌，都是讲运维要做搬机器，修修网络，修修电脑之类的苦活儿，但是我认为这不是运维的精髓。
+我们是不是应该先把“运维”这个词重新定义一下？作为腾讯T4 level的运维工程师，你能否讲一讲你所经历的运维人生，给刚刚上路的运维者一些启示？
+赵建春：我这边主要是比较偏软件层面的运维，硬件层面运维接触的比较少。另外，我是做开发出身的，所以和开发沟通起来比较好。
+我的团队都是做偏软件层面的事情的。归根到底，我们是做什么的呢？我认为，我们是让软件活起来的人。开发把软件开发出来以后，它只是一个程序。我们运维把它部署到线上去，这才让它真正的运转起来。我们是让软件真正的活起来的、有生命的一群人。
+邵海杨：我同意。运维工程师真正的终极目标就是让机器能够跳跃起来，能够滚动起来，能够把我们业务的美好的一面给展现出来。运维工程师最大的成就是什么？能够操作成千上百台机器……
+赵建春：成千上万台。
+邵海杨：而且还能够和睦相处。机器与机器之间也可以团结互助，比如你的机器这里有问题的，其他机器自动过来帮你分摊一下。
+赵建春：是的。而且这样的状态是要软件来实现的。
+邵海杨：是这样的。对于有些团队来说，可能软件工程师的技能有限，无法在交付软件的时候就考虑到机器和谐共处的这些问题，这种时候就必须要靠运维工程师进行一些工作，如水平扩展、分库、分表，从业务层面上去辅助软件，做一些软件开发的工作。
+你可以在开发和运维之间自如切换，这一点我真的很佩服你。我自己原来是做PHP的，没有接触过大型的软件开发的经历，开发方面还是偏弱一点。
+赵建春：这也是和自己的机遇相关的。这个是平台机遇，很难每个人都碰到一样的平台机遇。
+我觉得，每个人出去找到的第一份工作肯定是各式各样的，有的人可能一不小心就成为软件工程师了，有的人一不小心就进入到了运维工程师的行业。那个时候我就告诉他，你不管进哪个行业都没有关系，因为我们前进、发展的道路是一样的——比如，都要往架构师走。架构师说白了，就是以软件为基础。运维做到一定程度，你会用更多时间去想软件要怎么改进，运维的工作量就会减少。同时，软件开发师在设计软件的时候，也会更多考虑如何让运维更加智能。无论你是在这两种岗位中的哪一个岗位上，只要能够有这种跨领域的交流，其实慢慢都会走到架构师这条路。
+InfoQ：我打断一下。我觉得刚才你们说的是一种理想的状态，而现实是很骨感的。你们看到的现状离这种理想的状态还有多少差距？
+赵建春：在我看来，做运维分两类人：一类就是找了份工作，一类是真心喜欢技术。
+找了一份工作的人，他对技术的痴迷以及研究没有那么深刻。当他在运维过程中遇到问题时，协调能力好的人就能够通过协调的方式把这个问题解决了；协调能力不好的人，就只能打酱油。这两种人都会有一个问题：长远发展会有瓶颈。打酱油的那个肯定是不行的。有协调能力的人，他会把一个目标任务通过协调资源做好，但是对技术深度的积累就会比较差，这样他在做一些偏技术型的推进、推广的时候，就不能够去胜任，因为和他合作的人会不太信任他。
+对技术特别感兴趣的人，遇到了问题，或者出了一些故障，他就会找各种各样的办法解决它，看看业界对这个问题有什么研究结果，用各种办法把它弄明白。这个时候如果有一个快速发展的平台，经常面临爆发式增长的业务，他就会在很短时间内遇到很多不同种类的问题和异常，很快成为一个很有积累的人，每个事情他都钻的很深，他会积累到别人几年时间都积累不到的经验，然后会有很多深刻的体会和感受。
+这种人又分两种：一种协调能力很好；一种不怎么说话。不怎么说话的人，会成为运维领域专家，能够解决很深的技术问题。协调能力很好的人，慢慢会有自己的想法，从根本上去反推开发，和开发讲道理，探讨这个问题应该怎么样来解决。因为很深入技术，所以和开发的沟通是对等的，他认为你说的有道理。长此以往，你对开发会越来越有影响力，给整个的业务和架构带来控制和影响。
+我以前招聘的时候常说，也许你做过开发，也许你没做过开发，长远的发展都是运维架构师。我们是不写代码的架构师，通过规范和约束产品的架构使它变得更好。
+邵海杨：腾讯是大公司，高手多，分享又多。你们有腾讯大讲堂，淘宝有阿里大学，只要努力积极的向别人去学习，成长的空间和机会就很多了。像我们小公司呢，一方面要积极的向自己的同事去学习，另外还要多去参加社区活动。因为在小公司，毕竟个人的能力有限，你旁边有个高手，把他学到手了，还是井底之蛙。要不断的走出去。
+对于现在正在运维路上挣扎的那些人，他可能想让自己的工作变得轻松一点。你对他们有什么技能上的建议？
+赵建春：让工作变得轻松一点？
+我觉得运维这个岗位和研发不太一样，他要的知识面是广度加深度。研发往往更要求深度，除了架构师之外，大部分研发工作需要有很好的深度才能完成。运维是软件和硬件之间的一个桥梁，所以你就要懂得技术，懂得软件，懂得开发，还要懂操作系统，懂硬件，所以听上去对你的要求就会比较多，很难样样都很精深。
+要让自己做得比较轻松，你要能清楚的认识自己是一个什么样特点的人。
+如果你是一个技术深度没那么深的人，那就建议多做一些技术项目的推动工作。其实团队里面，很多东西都是要持续的去花一年、两年时间去推动的，把它从没有做到百分之百，这个过程中，需要很多沟通、推动的技巧。一个很闷的工程师要把一个方案推销出去，难度是很高的。但是一个很会打交道的人，他去推动这个事情就会很容易。虽然你对技术没那么精通，要做管理决策的时候会有问题，但是适合做项目的推进。
+如果你对技术非常感兴趣，尤其是如果你觉得自己对协调、推动这种事情不感兴趣，那最好是走技术专家的道路，比如数据库专家，软件架构专家等等。
+这两个也可以结合起来。深、广结合的人适合做管理。大多数这样深度也还不错、协调能力和沟通能力也还不错的人都走到管理上去了，这样的人发展的前景会更好一些。
+不管怎样，你应该很好的认识自身的特点。
+邵海杨：你刚才提到的运维人员必须表达能力要好，这一点我非常赞同。运维工程师做的两个事情，第一个是机器要听话：我们要让自己闲下来，用自动化的工具，统一管理，把流程规范掉，这样我就可以批量的去操作机器。
+第二个事情就比较难了，我需要问老板要资源。身边十台机器，用完了就用完了；再要十台的时候，就要考察你的表达能力。这一点我觉得非常痛苦。
+我有个经验，老板他其实是对钱比较关心，或者对数据比较关心，你口头跟他去讲，他是没有感觉的。如果老板是懂技术的，我们就直接拿生产线上的监控图给他看，说负载已经这个样子了，他就能理解。如果老板是不懂技术的，你给他看这个数据他还真的看不懂，所以必须给他业务报表，图形化的业务报表给他看。总之，还是要动一些小聪明，去转换成老板能够理解的方式去问他要资源。你只要能够做到这两点，这个事情就能够做得很好。
+赵建春：一般这样的人的思维会比较清晰，说事情也会说的比较清晰。你要把一个技术问题让别人听懂，有些人还真做不到。
+邵海杨：你今天上午演讲的话题，我个人感觉还是偏大，大公司里用的多。小公司，比如说我们，还是用小的自动化加Puppet用的比较多一点。
+赵建春：但是我觉得小公司也要非常注意，因为我们就是从小变大的。在这个过程中，我们最终选择了这样一个路，其实回过来看也是有很多的教训，为什么早不做？为什么在很小的时候不做？在小的时候不意识到这个在大了以后会带来的麻烦和困惑有多大，你就没有这个压力和动力去做；但是等它大了以后，资源永远是有限的，尤其是咱们搞互联网的，整天都在加班处理故障，哪有时间回过头来做打扫清扫的工作。
+你越早做，以后越不需要你去回过头去把这个不标准的变成标准的。
+InfoQ：我插一个问题：你也不知道你会不会变大，万一白做了怎么办？
+赵建春：当然是希望变大了。
+邵海杨：我相信你做了标准化组件以后还真的会变大，因为你有这种想法以后，这个公司想不强大都不行。
+赵建春：也不一定一开始就要做标准化组件，但是一开始你要多想，最好是根据长期对比选择一两样的技术方案，而不是说什么技术方案都有。不同的人进来就会带来一套不同的技术架构，这是很不应该的，因为人员会迭代，会更替，他会走，也会来新的人。一旦人员发生更替变化之后，原来那堆系统就没人管了。开发不用管，运维你得管，因为要对用户服务。这时候痛苦的是你。
+邵海杨：是的，必须要流程化。
+我想问一个我比较关心的问题，当我进入一个公司以后，运维要去做一些事情，然后会牵扯到跟研发的争议。怎么去协调运维跟研发之间的节奏？
+赵建春：这也不见得是我个人的经验了，是公司的经验，包括我的一些体会。
+我总结就是有张有弛：开发进的时候我们退，开发退的时候我们进。
+我们是要服务产品、服务用户的，最终是要为用户服务好。开发进的时候，他们可能会有很多很紧急的事情，要保证这个产品按时上线，或者说抢占市场，他会产生很多需求。这个时候我要开下绿灯，那我们就退一下，全力支持好开发，去把这个做好。
+但是呢，产品也会有周期，也会有波峰低谷，它有的时候比较闲，在这个时候你退我进，和开发造成一个很好的一个互动。
+正式的做法是这样子的：我们运维线每年都会制订一个年度规划的大目标，比如说我们今年要做容错容灾的跨Site分布，这是我们的一个年度的计划。当然这一年也许完成不了，如果完成不了就延后到下一年，但是我们提前就告诉你我们要做这样的事情，明年我们在产品上做一些优化的项目，后年我们要支持一下IPv6，这些项目我们在年初的时候就会有一些优先的一些思考，今年应该做什么，明年重点做什么。这个时候和开发沟通，最好是让两边都把这个任务考虑进去，排到自己的KPI里面去。这个时候我们就会和开发协商，在一年的间里面协商一些重要的事情，包括我们做这种规范化的建设，可能也会要他们来配合，那我不是说一年时间，你肯定是有忙的时候有闲的时候，忙的时间我肯定全力支持你，闲的时候你全力支持我，你进我退，我退你进，就是这样。
+邵海杨：你是说运维和研发是要充分交流的？
+赵建春：我们是交流很多的，很多任务是共同协商里面就要认同去做的。说白了，我们是支持开发的，是服务他们的，但我们要争取他们的服务，在理论上要是对等的，不能我们一味的服务你，你不服务我。如果形成良好的互动以后，他就会互相支持。
+邵海杨：不过，在我公司里也有这种情况：技术员有点水平，就开始有点脾气了，我们运维人员还得去迁就。
+赵建春：这是有可能的。但是，这也跟我们中午讨论的一个话题有关，就是看能不能和开发形成良好的互助互信任的一个机制。而且我觉得除了刚才说的，也要高层来制订一些在技术线上的一些长远的目标。
+邵海杨：我曾经在一个公司做的很开心，就是因为有高层支持。我们特别成立了一个研究组——我不知道你那边腾讯叫什么？类似技术委员会？
+赵建春：技术委员会是做直接晋升那种。
+邵海杨：我们成立了一个研究组，这个研究组有个运维总监，就比如说我，然后还有个研发的头，还有一个就是做业务这一块的，还有一个就是产品经理。我们发现我们四个人坐在一张桌子上办公的时候效率特别高，因为沟通只要跟上面的Leader沟通就好了。最怕就是什么呢？就是前期没沟通，等到要上线了再跟你来说，每个人心里都会抵触一下。我发现那个时候坐在一起的时候效率特别高，而且我们互相之间都学到了东西，一些好的Idea，好的技术，马上就可以去做一些研究跟进。
+赵建春：我们运维和研发Leader在和总监一起的时候就经常会讨论一些问题，最近运维需要我们支持帮你们做什么推动和改进。然后过年的时候交换一下信息，你明年重点做什么，然后互相留下时间。但是呢，不要在开发很忙的时候去强制他做一些事情，这样会使他会反感很大，他觉得你不理解他，他压力也很大。
+邵海杨：下一个问题，我想问一下，你认为运维工程师最需要的一种品质是什么？
+赵建春：我先说一个非技术的，就是能够受委屈。为什么这么说呢？因为不管什么地方发生了故障，都和运维有关，你都逃不了干系，都是你有一定的责任。所以有时候，你觉得自己很委屈，这个事真的和自己没关系，甚至是公司有些处罚或者什么的时候，他一定会把你涵盖进去，这时候觉得做这个工作很没意义，很痛苦。
+但这个也不能这么想。实际上，确实是所有的问题都可以归结为一条：监控不到位。
+还有，胸怀是被委屈撑大的，心胸放开阔了以后，那这些问题都不是问题，每一个问题都是一次学习的机会。
+第二，我比较喜欢技术，我认为还是要有钻研精神，要去学习深入了解技术。因为我们做运维的纯粹是做技术的，我们不是做产品，不是做销售。刚才我讲的这个协调项目型的人，团队里确实需要，但是不需要太多，一个团队有那么几个就够了。还是希望团队的同事更多去更深入的研究和学习技术，然后这样我们和开发才能有一个对等的沟通和交流，否则开发可能真的是会懒得跟你讨论问题，他觉得我们两个不在一个频道上，沟通起来会很难。
+我们每双周都有团队内部的分享。我曾经尝试过两次，第一次失败了，组织了一堆人要去分享，让你第一次讲，他第二次讲，他第三次讲，这样安排的发现不行，分享了三四节课以后断了。第二次做的时候，我就亲自出马，自己提前准备了四门课，组织起来以后，如果哪里没人讲了，我就讲。同时我在底下去找一些Leader，找一些骨干的同事，和他们讨论他们有什么可以贡献的，希望他们来讲。这时候再去大方向的撒网说，谁愿意讲来找我，给大家来提前准备，我就去提前把两、三个月的分享的议题先统计下来。你可能没做好PPT，那我就问他你要不要讲，他说要讲，沟通一个大概时间，他给我一个承诺以后他就去准备，这个时候等快断粮的时候再去收集一下。
+现在这个机制保持的比较好，我们已经坚持了两年时间，有时候一周不止一次。
+邵海杨：这点说到我心坎里去了。运维人员要不断的学习新技术，同时还要分享，我一直认为一个人的学习是有限的。
+赵建春：而且这样的一个氛围会带动周围的人去学。那些刚开始没有想着去分享的人，看到别人都在分享，如果这个人有上进心，他会觉得自己落后了，是不是考虑要分享一下。
+邵海杨：而且可以帮助他们锻炼口才，就把交际能力这一块也给提上去了。
+赵建春：很多人很乐意分享。我们团队里面有很多同事分享了好几次，他有些课题他要一次讲不完，他要分好几次讲，比如Hadoop，或者是Linux Container，一次讲不完，他就分几个章节来讲。
+邵海杨：所以我对运维工程师只强调两点，第一点就是运维自动化，一定要让自己闲下来，才有更多的时间和精力去学习新知识；第二个，一定要坚持学习，尤其是Linux，因为很多新技术都是先在Linux上被实现的，所以你要坚持每天学习一点点。最关键的是一定要学会分享，因为你一旦会分享了以后，你会发现你的交际能力也变强了，你的口头能力也变强了。
+赵建春：也提升了影响力。
+邵海杨：这些能力提升以后，以后我们去问老大要资源，就会变得很Easy。
+领域
+运维 & 基础架构
+语言 & 开发
+专栏
+分布式团队
+协作
+职业生涯
+软件开发
+敏捷
+团队协作
+运维
+团队工作
+相关内容
+阿里巴巴张旭升谈ITIL及运维架构
+运维团队能从橄榄球教练身上学到什么？
+新浪CDN自动化运维
+淘宝狂欢节的运维故事
+海量SNS社区网站高效运维探索
+
+告诉我们您的想法
+社区评论
+Watch Thread
+说的很好，不光适合运维，有一定的普适性 by Chang River Posted 09/07/2013 12:12
+说的很好，不光适合运维，有一定的普适性
+09/07/2013 12:12 by Chang River
+干什么都得坚持学习；自动化运维，让自己成为懒人；从小就得谋大；做深做广看自己的兴趣和追求。
+回复
+回到顶部
 
 -------------第5篇文章----------------
 标题:阅读者：Ruby的白魔法书
-内容:在Ruby的世界中，程序员们享受着各种光怪陆离的语法糖，也经历着各种各样的陷阱。而这一切的根本就在于Ruby强大的元编程能力。
+内容:在Ruby的世界中，程序员们享受着各种光怪陆离的语法糖，也经历着各种各样的陷阱。而这一切的根本就在于Ruby强大的元编程能力。元编程就像Ruby世界的魔法，当其是白魔法的时候可以帮助你把程序变得异常简洁，美观；而当其是黑魔法的时候，你将会迷失在一些很难解释的Bug中。
+《Ruby元编程》就是一部告诉大家如何使用，控制Ruby元编程魔法的秘籍。该书的写作手法非常值得称道，作者把所有的知识点浓缩在了一个星期的工作过程中，通过一个菜鸟和大牛针对项目中遇到的各种问题的讨论，解决来引入各种元编程的知识点。 除此之外，在每个知识点的结尾处都还附带了有趣的小测验， 让读者可以跟随着菜鸟的思路，感受到自己在一步一步的掌握元编程的思想。这一切的编排让这本书读起来非常的有趣，并且书中的理论知识与项目中的实战相结合的讲述方式，让读者更容易去思考如何在自己的项目中运用这些知识。
+我是从同事的口中听说这本书的，他读完这本书之后说：“这本书基本上改变了其写代码的习惯。”，作为一个码龄超过10年的程序员。如此赞誉一本书，让我决心一定要读一下这本书，读完之后，此书果然不负此赞誉。不管是初级程序员，还是编程高手，都应该读一下这本书，如果你是Ruby程序员，那么这本书可以算是必读书之一。该书分为2个部分。第一部分从对象模型，方法，代码块，类定义等方面一一剖析Ruby的设计原理，然后再通过实例告诉大家如何在实际应用中有效的利用这些设计原理，同时作者还非常善良的提醒了大家在使用这些技巧时的注意事项，防止这些魔法变成黑魔法。第二部分是剖析Rails中使用到的各种元编程技巧，读过之后，对理解Rails底层实现裨益良多，当然,对Rails无爱的读者可以直接略过。
+相关厂商内容
+Martin Thompson，LMAX CTO，大数据处理专家，确认参加QCon上海2013
+百度技术沙龙第四十一期：自然语言处理技术及互联网应用解析 （2013年8月17日 周六）
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+对象模型
+提到对象，程序员首先想到的就是类这个概念，在本书第一章中，作者首先对Ruby世界的类进行了一番基础的讲解：
+不同于JAVA等静态语言，类定义中只能执行定义变量和方法的语句，在Ruby中，类定义的代码和其他的代码是一样的，可以在其中执行任何的Ruby语句。
+Ruby天生具有打开一个已经存在的类，并动态修改其内容的能力，但需注意猴子补丁的问题。
+类的实例变量是存储在对象中，实例变量与该对象的类没有关系，当给对象的实例变量赋值时，该实例变量就生成了，实例变量就像是一个挂载在对象上的HashMap，每个对象都可以拥有自己不同的HashMap。
+方法的定义在对象自身的类中，因为“共享同一个类的对象也必须共享同样的方法”。但是，不能说Class有一个叫做“method”的方法，因为无法使用"Class.method"调用该方法，而要说Class有一个实例方法“method”，这意味着必须创建该类的实例对象，通过实例对象调用该方法。
+Ruby中同样可以定义类方法，或者说类宏，定义方法时，在方法名前加“self.”或者“类名.”前缀即可， 然后可以在类中像使用关键字一样使用该方法，依靠类宏，可以实现很多非常简洁的DSL。
+类本身也是对象，所有实例对象上的规则，同样可以适用于类对象本身。
+类的继承体系:
+在第四章：类定义中， 作者引入了更多关于Ruby对象模型的高级概念：当前类，单件方法，EigenClass等：
+不管代码执行到哪个位置，都会有一个当前对象self，相对应的，也总会有一个当前类的存在。当定义一个方法时，该方法就会成为当前类的一个实例方法。跟踪当前类在Ruby中也并不困难，当使用class或module关键字打开一个类的时候，当前类就是被打开的那个类，在类定义时，当前对象self和当前类都是类对象本身，在调用方法时，当前对象self是调用方法的实例对象，当前类是该实例对象的类。
+Ruby中，可以针对某个实例对象添加方法，这样，该扩展就不会对该类的其他实例对象产生影响，这种只针对单个对象生效的方法称之为’单件方法‘（singleton method）。
+每一个对象都有一个特有的隐藏类EigenClass，EigenClass是一个很特殊的类，它只能有一个实例，且不能被继承，但是其自身可以继承其它类.只对某个对象生效的方法就是保存在这个对象的EigenClass中，像实例对象的单件方法和类对象的类宏。
+引入了EigenClass之后的Ruby对象模型继承体系：
+最后，作者非常简练的总结了关于Ruby对象模型的知识点，这些初看起来非常复杂的概念，当你深入进去之后，就会发现，复杂性慢慢褪去。一切都变得简单，清晰起来，如果把Eigenclass、类和模块归结为一个东西的话（因为它们本质上的概念差不多，姑且统称为模块），Ruby的对象模型可以总结为一下几条规则：
+关于对象，只有2种对象，要么是实例对象，要么是模块对象，用于存放实例变量的绑定。
+关于模块，它可以是Eigenclass，类，或模块。用于存放方法和一些类实例变量。
+关于方法，方法必须存在于一种模块中。
+每个对象（包括模块对象）都有自己的Eigenclass，用于保存当前对象的单件方法（类对象的就是类宏）。
+除了BasicObjec类无超类以外，所有的模块对象都有且只有一个父类，即从任何模块对象只有一条向上直到BasicObject的祖先链。
+一个实例对象的Eigenclass的父类是该实例对象的类，一个模块对象的eigenclass的超类是该模块对象的超类的eigenclass。
+在类对象中插入一个模块时，该模块会出现在该类的祖先链的正上方。
+调用方法时，Ruby总是先向“右”迈一步进入接收者真正的类中，然后向上进入祖先链。
+代码块的迷思
+对于OOP出身的程序员来说，关于Ruby对象模型的介绍比较容易理解，接受。而代码块则是来自于函数式编程的世界。因此，阅读本章时，OOP程序员需要清空自己的固有思维来接收新的概念和思维方式。代码块极大的增强了Ruby代码的表现力。在本章中，作者先介绍了块的基础知识，如何定义，使用代码块，然后进一步介绍了Ruby世界中的所有可调用对象。同时，在该章节中还讲解了作用域的基本概念，以及如何使用代码块技术控制作用域的知识。
+定义一个代码块的方式有2种 ，一是使用do … end, 另外一种是用大括号“{}”把代码内容括起来。代码块定义时也是可以接受参数的。但是，只有在调用一个方法的时候才可以定义一个块。
+块定义好之后，会直接传递给调用的方法，在该方法中，使用“yield”关键字即可回调这个块。
+如果一个方法定义的时候使用了yield关键字，但是调用的时候却没有传递代码块，方法会抛出“no block given (yield) (LocalJumpError)”异常。
+代码在运行的时候，除了需要代码外，还需要运行环境，即一组各种变量的绑定。代码块就是由代码和一组绑定组成的，代码块可以获得自己定义的局部变量的绑定，和上下文可见的实例变量，在代码块执行的时候，只会根据自己定义时可见的绑定来执行。业界把块这样的特性称之为闭包（Closure）。
+代码运行时，需要一组绑定， 这组绑定在代码的运行过程中，还会发生变化，这种变化发生的根本原因就是作用域发生改变，每个变量绑定都有自己的作用域，一但代码切换作用域，旧的绑定就会被一批新的绑定取代。
+uby程序只会在3个地方关闭前一个作用域，同时打开一个新的作用域, 这三个地方通常称之为作用域们（Scope Gate）：
+类定义: class…end；
+模块定义: module…end；
+方法定义: def…end;
+代码块可以转化为可调用对象， 这样就可以把代码块当做对象处理。
+Ruby中有4种创建可调用对象的方法：
+proc{…}
+Proc.new { …}
+lambda{…}
+&操作符。该操作符只有在方法调用时才有效，在方法定义时，可以给方法添加一个特殊的参数，该参数必须为参数列表中的最后一个，且以&符号开头，其含义就是，这是一个Proc对象，我想把它当做一个块来用，如果调用该函数时，没有传递代码块，那么该参数值将为nil。
+可调用对象在Ruby中都是Proc对象，但是lambda和proc创建的Proc对象还是有些细微差别。主要体现在2个方面：
+return关键字的行为，lambda中，return仅表示从lambda中返回， 而proc中，则是从定义proc的作用域中返回。
+参数校验规则：lambda中，参数个数不对，会抛ArgumentError错误，而proc中，则会尝试调整参数为自己期望的形式，参数多，则忽略多余的，参数少则自动补nil。
+法术集
+本书在每个章节的知识点讲解过程中，还包含了很多实战的技巧，这些小技巧有的可以帮助程序员快速定位问题，比方说，使用Object#instance_eval(),查看一个对象的内部行为，一些可以帮助开发者优雅实现一些的功能，比方说通过类宏和动态定义方法实现的attr_accessor。
+动态调用方法，通过使用Object#send()方法，可以直到最后一刻才决定到底运行哪个方法。
+动态定义方法，通过使用Module#define_method()方法可以传入一个方法名和一个代码块动态定义一个方法。
+Kernal#method_missing()方法，通过该方法的特性和动态调用方法结合，可以优雅的实现程序调用的动态代理。
+扁平化作用域，通过使用Class.new()代替class关键字，Module.new()代替module关键字，Module#define_method()代替def关键字，这样所有的定义都在一个作用域，共享了该作用域的所有绑定。
+上下文探针，通过使用Object#instance_eval()和Object#instance_exec()方法，可以轻松查看实例对象的内部状态。
+环绕别名，通过alias关键字从一个新定义的方法中调用原始的，被重命名的版本。该法术可以很容易的扩展一个已存在的方法。
+代码字符串，通过使用Kernal#eval()方法，可以把字符串自己当作代码执行。
+钩子方法，Ruby中提供了很多监控对象模型变化的钩子方法，比方说Class#inherited(),当类被继承时会调用该方法，还有Module#method_added,Method#method_removed等等。这个技术给人很多想象空间。
+…
+更多的法术，等待着读者到书中去找寻。
+结语
+“其实世界上根本就没有什么元编程，有的只是编程而已”，作者在第6章中的点睛之句，升华了这本书的主题。所谓编程就是通过代码去解决实际的问题，作为程序员，我们总是尽力去寻找最精巧、最舒服的解决问题的方式。而元编程所展示的所有技巧，手法就正好为我们提供了这样的方式。
+感谢张逸对本文的审校。
+给InfoQ中文站投稿或者参与内容翻译工作，请邮件至editors@cn.infoq.com。也欢迎大家通过新浪微博（@InfoQ）或者腾讯微博（@InfoQ）关注我们，并与我们的编辑和其他读者朋友交流。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+Ruby
+阅读者
+编程
+动态语言
+面向对象编程
+元编程
+方法论
+相关内容
+带有基于Smalltalk的Ruby VM的NoSQL OODB：MagLev 1.0发布了
+Ruby on Rails 4发布：通过Turbolinks提速页面
+Windows Azure增强了点到网站、动态DNS和远程PowerShell支持并发布了新的Ruby SDK
+范凯观点：Ruby社区应该去Rails化
+Iron.io从Ruby迁移到Go：减少了28台服务器并避免了连锁故障
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
 -------------第6篇文章----------------
 标题:Gradle在大型Java项目上的应用
-内容:本文是作者在一个大型Java项目上使用Gradle的部分经验。它是基于Groovy语言的构建工具，既保持了Maven的优点，又通过使用Groovy定义的DSL，克服了Maven中使用XML繁冗以及不灵活等缺点。
+内容:在Java构建工具的世界里，先有了Ant，然后有了Maven。Maven的CoC[1]、依赖管理以及项目构建规则重用性等特点，让Maven几乎成为Java构建工具的事实标准。然而，冗余的依赖管理配置、复杂并且难以扩展的构建生命周期，都成为使用Maven的困扰。
+Gradle作为新的构建工具，获得了2010 Springy大奖，并入围了2011的Jax最佳Java技术发明奖。它是基于Groovy语言的构建工具，既保持了Maven的优点，又通过使用Groovy定义的DSL[2]，克服了 Maven中使用XML繁冗以及不灵活等缺点。在Eugene Dvorkin撰写的文章《最让人激动的5个Java项目》中，他是这样介绍Gradle的：
+“工程自动化是软件项目成功的必要条件，而且它应该实现起来简单、易用、好玩。构建没有千篇一律的方法，所以Gradle没有死板的强加方法于我们，尽管你会认为查找和描述方法很重要，然而Gradle对于如何描述有着非常好的支持。我不认为工具能够拯救我们，但是Gradle能给你所需要的自由，你可以利用Gradle构建易描述的、可维护的、简洁的、高性能项目”。
+相关厂商内容
+Martin Thompson，LMAX CTO，大数据处理专家，确认参加QCon上海2013
+首届QCon上海20个专题确认，80余场分享，全面征集演讲主题
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+在最近半年里，我在使用Gradle作为构建脚本的大型Java项目上工作，更深切体会到Gradle在项目构建过程中是如此的简单、易用。
+1. 多Module的项目
+Hibernate项目负责人Steve Ebersole在Hibernate将构建脚本从Maven换成Gradle时，专门写了一篇文章《Gradle: why?》，文中提到Maven的一个缺点就是：Maven不支持多module的构建。在Micro-Service[3]架构风格流行的今天，在一个项目里面包含多个Module已成为一种趋势。Gradle天然支持多module，并且提供了很多手段来简化构建脚本。在Gradle中，一个模块就是它的一个子项目（subproject），所以，我使用父项目来描述顶级项目，使用子项目来描述顶级项目下面的模块。
+1.1 配置子项目
+在多模块的项目中，Gradle遵循惯例优于配置 （Convention Over Configuration）原则。
+在父项目的根目录下寻找settings.gradle文件，在该文件中设置想要包括到项目构建中的子项目。在构建的初始化阶段（Initialization），Gradle会根据settings.gradle 文件来判断有哪些子项目被include到了构建中，并为每一个子项目初始化一个Project对象，在构建脚本中通过project(‘:sub-project-name’)来引用子项目对应的Project对象。
+通常，多模块项目的目录结构要求将子模块放在父项目的根目录下，但是如果有特殊的目录结构，可以在settings.gradle文件中配置。
+我所在的项目包括：
+一个描述核心业务的core模块
+一个遗留的Enterprise Java Bean（enterprise-beans）模块
+两个提供不同服务的Web项目（cis-war和admin-war）
+一个通过schema生成jaxb对象的jaxb项目以及一个用来用来打ear包的ear项目
+一个用于存放项目配置文件相关的config子目录。它不是子模块，所以 config不应该被加到项目的构建中去。
+它们都放置在根项目目录下。我们通过如下的settings.gradle来设置项目中的子项目：
+include 'core', 'enterprise-beans', 'cis-war', 'admin-war', 'jaxb', 'ear'
+我们将需要加入到项目构建中的子项目配置在settings.gradle文件中，而没有加入不需要的config子目录。
+1.2 共享配置
+在大型Java项目中，子项目之间必然具有相同的配置项。我们在编写代码时，要追求代码重用和代码整洁；而在编写Gradle脚本时，同样需要保持代码重用和代码整洁。Gradle 提供了不同的方式使不同的项目能够共享配置。
+allprojects：allprojects是父Project的一个属性，该属性会返回该Project对象以及其所有子项目。在父项目的build.gradle脚本里，可以通过给allprojects传一个包含配置信息的闭包，来配置所有项目（包括父项目）的共同设置。通常可以在这里配置IDE的插件，group和version等信息，比如：
+allprojects {
+    apply plugin: 'idea'
+    }
+这样就会给所有的项目（包括当前项目以及其子项目）应用上idea插件。
+subprojects：subprojects和allprojects一样，也是父Project的一个属性，该属性会返回所有子项目。在父项目的build.gradle脚本里，给 subprojects传一个包含配置信息的闭包，可以配置所有子项目共有的设置，比如共同的插件、repositories、依赖版本以及依赖配置：
+subprojects {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+    ext {
+          guavaVersion = ’14.0.1’
+          junitVersion = ‘4.10’ 
+   } 
+
+    dependencies {
+        compile(
+                “com.google.guava:guava:${guavaVersion}”
+        )
+        testCompile(
+                “junit:junit:${junitVersion}”
+        )
+    }
+}
+这就会给所有子项目设置上java的插件、使用mavenCentral作为 所有子项目的repository以及对Guava[4]和JUnit的项目依赖。此外，这里还在ext里配置依赖包的版本，方便以后升级依赖的版本。
+configure：在项目中，并不是所有的子项目都会具有相同的配置，但是会有部分子项目具有相同的配置，比如在我所在的项目里除了cis-war和admin-war是web项目之外，其他子项目都不是。所以需要给这两个子项目添加war插件。Gradle的configure可以传入子项目数组，并为这些子项目设置相关配置。在我的项目中使用如下的配置：
+configure(subprojects.findAll {it.name.contains('war')}) {
+    apply plugin: 'war'
+    }
+configure需要传入一个Project对象的数组，通过查找所有项目名包含war的子项目，并为其设置war插件。
+1.3 独享配置
+在项目中，除了设置共同配置之外， 每个子项目还会有其独有的配置。比如每个子项目具有不同的依赖以及每个子项目特殊的task等。Gradle提供了两种方式来分别为每个子项目设置独有的配置。
+在父项目的build.gradle文件中通过project(‘:sub-project-name’)来设置对应的子项目的配置。比如在子项目core需要Hibernate的依赖，可以在父项目的build.gradle文件中添加如下的配置：
+project(‘:core’) {
+      ext{
+                   hibernateVersion = ‘4.2.1.Final’
+      }
+ dependencies { 
+      compile “org.hibernate:hibernate-core:${hibernateVersion}”
+}
+}
+注意这里子项目名字前面有一个冒号（：）。 通过这种方式，指定对应的子项目，并对其进行配置。
+我们还可以在每个子项目的目录里建立自己的构建脚本。在上例中，可以在子项目core目录下为其建立一个build.gradle文件，并在该构建脚本中配置core子项目所需的所有配置。例如，在该build.gradle文件中添加如下配置：
+ ext{
+       hibernateVersion = ‘4.2.1.Final’
+      }
+ dependencies { 
+     compile “org.hibernate:hibernate-core:${hibernateVersion}”
+}
+根据我对Gradle的使用经验，对于子项目少，配置简单的小型项目，推荐使用第一种方式配置，这样就可以把所有的配置信息放在同一个build.gradle文件里。例如我同事郑晔的开源项目moco。它只有两个子项目，因而就使用了第一种方式配置，在项目根目录下的build.gradle文件中设置项目相关的配置信息。但是，若是对于子项目多，并且配置复杂的大型项目，使用第二种方式对项目进行配置会更好。因为，第二种配置方式将各个项目的配置分别放到单独的build.gradle文件中去，可以方便设置和管理每个子项目的配置信息。
+1.4 其他共享
+在Gradle中，除了上面提到的配置信息共享，还可以共享方法以及Task。可以在根目录的build.gradle文件中添加所有子项目都需要的方法，在子项目的build.gradle文件中调用在父项目build.gradle脚本里定义的方法。例如我定义了这样一个方法，它可以从命令行中获取属性，若没有提供该属性，则使用默认值：
+def defaultProperty(propertyName, defaultValue) {
+    return hasProperty(propertyName) ? project[propertyName] : defaultValue
+}
+注意，这段脚本完全就是一段Groovy代码，具有非常好的可读性。
+由于在父项目中定义了defaultProperty方法，因而在子项目的build.gradle文件中，也可以调用该方法。
+2. 环境的配置
+为了方便地将应用部署到开发、测试以及产品等不同环境上， Gradle提供了几种不同的方式为不同的环境打包，使得不同的环境可以使用不同的配置文件。此外，它还提供了简单的方法，使得我们能够便捷地初始化数据库 。
+2.1 Properties配置
+要为不同的环境提供不一样的配置信息，Maven选择使用profile，而Gradle则提供了两种方法为构建脚本提供Properties配置：
+第一种方式是使用传统的properties文件， 然后在使用Gradle时，通过传入不同的参数加载不同的properties文件。例如，我们可以在项目中提供development.properties、test.properties和production.properties。在项目运行时，使用-Pprofile=development来指定加载开发环境的配置。构建脚本中加载properties文件的代码如下：
+ext {
+    profile = project['profile']
+}
+def loadProperties(){
+    def props = new Properties()
+    new File("${rootProject.projectDir}/config/${profile}.properties")
+            .withInputStream {
+                stream -> props.load(stream)
+            }
+    props
+}
+在运行脚本的时候，传入的-Pprofile=development可以指定使用哪个运行环境的配置文件。代码中使用了project['profile']从命令行里读取-P传入的参数，Gradle会去父项目根目录下的config文件夹中需找对应的properties文件。
+另外一种方式就是使用Groovy的语法，定义可读性更高的配置文件。比如可以在项目中定义config.groovy的配置文件，内容如下：
+environments {
+    development {
+        jdbc {
+            url = 'development'
+            user = 'xxxx'
+            password = 'xxxx'
+        }
+    }
+
+    test {
+        jdbc {
+            url = 'test'
+            user = 'xxxx'
+            password = 'xxxx'
+        }
+    }
+
+    production {
+        jdbc {
+            url = 'production'
+            user = 'xxxx'
+            password = 'xxxx'
+        }
+    }
+}
+这里定义了三个环境下的不同数据库配置，在构建脚本中使用如下的代码来加载：
+ext {
+    profile = project['profile']
+}
+
+def loadGroovy(){
+    def configFile = file('config.groovy')
+    new ConfigSlurper(profile).parse(configFile.toURL()).toProperties()
+}
+这里在ConfigSlurper的构造函数里传入从命令行里取到的-P的参数。调用loadGroovy方法就可以加载项目根目录下的config.groovy文件，并作为一个Map返回，这样就可以通过jdbc.url来获取url的值。
+从可读性以及代码整洁（配置文件也需要代码整洁）而言，我推荐使用第二种方式来配置，因为这种方法具有清晰的结构。如上面的例子，就可以把数据库相关的信息都放在jdbc这个大的节点下，而不用像properties文件这样的扁平结构。但是对于一些已经使用properties文件来为不同环境提供配置信息的遗留项目里，使用properties文件也没有问题。
+2.2 替换
+通过不同的方式加载不同环境的配置后，就需要把它们替换到有占位符的配置文件中去。在配置文件中使用@key@来标注要被替换的位置，比如在config文件夹中有jdbc.properties文件，其内容如下：
+jdbc.url=@jdbc.url@
+jdbc.user=@jdbc.user@
+jdbc.password=@jdbc.password@
+在Gradle构建过程中，有一个processResources的Task，可以修改该Task的配置，让其在构建过程中替换资源文件中的占位符：
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter(org.apache.tools.ant.filters.ReplaceTokens,
+                  tokens: loadGroovyConfig()
+)
+    }
+}
+上面这种做法用来处理子项目src/main/resources文件夹下的资源文件，所以需要将这段代码放在子项目的独立配置文件里。
+在一些复杂的项目中，经常会把配置文件放置到一个目录进行统一管理。比如在我所在的项目，就专门提供了一个config子目录，里面存放了所有的配置信息。在处理这些资源文件时， Gradle默认提供的processResources就不够用了，我们需要在Gradle脚本中定义一个Task去替换这些包含占位符的配置文件，然后让package或者deploy的Task依赖这个Task。该Task的代码如下：
+task replace(type: Sync) {
+            def configHome = "${project.rootDir}/config"
+
+    from(configHome) {
+        include '**/*.properties'
+        include '**/*.xml'
+        filter org.apache.tools.ant.filters.ReplaceTokens, 
+tokens: loadGroovyConfig()
+    }
+    into "${buildDir}/resources/main"
+}
+这里定义了一个Sync类型的Task，会将父项目的根目录下的config文件夹的所有properties和xml文件使用从loadGroovyConfig()方法中加载出来的配置替换，并将替换之后的文件放到build文件夹下的resource/main目录中。再让打包的Task依赖这个Task，就会把替换之后的配置文件打到包中。
+2.3 更复杂的情况
+上面介绍了在项目中如何使用Gradle处理 properties和xml文件中具有相同配置，但其中的一些值并不相同的情况 。然而，在有些项目中不同的环境配置之间变化的不仅是值，很有可能整个配置文件都不相同；那么，使用上面替换的处理方式就无法满足要求了。
+在我所在的项目中，我们需要依赖一个外部的Web Service。在开发环境上，我们使用了Stub来模拟和Web Service之间的交互，为开发环境提供测试数据，这些数据都放置在一个Spring的配置文件中；而在测试和产品环境上，又要使用对应的测试和产品环境的Web Service。这时，开发、测试与产品环境的配置完全不同。对于这种复杂的情况，Gradle可以在构建过程中为不同的环境指定不同的资源文件夹，在不同的资源文件夹中包含不同的配置文件。
+例如，在我们项目的config目录下包含了application文件夹，定义了不同环境所需的不同配置文件，其目录结构如下图所示：
+在构建脚本中，根据从命令行读入的-P参数，使用不同的资源文件夹，其代码如下：
+sourceSets {
+    main {
+        resources {
+            srcDir "config/application/spring/${profile}", 
+                        "config/application/properties/${profile}"
+        }
+    }
+}
+这样在打包的过程中，就可以使用-P传入的参数的资源文件夹下面的properties和xml文件作为项目的配置文件。
+2.4 初始化数据库
+在项目开发过程中，为了方便为不同环境构建相同的数据库及数据，我们通常需创建数据库的表以及插入一些初始化数据。Gradle目前没有提供相关的Task或者Plugin，但是我们可以自己创建Task去运行SQL来初始化各个环境上的数据库。
+前面也提到Gradle是Groovy定义的DSL，所以我们可以在Gradle中使用Groovy的代码来执行SQL脚本文件。在Gradle脚本中，使用Groovy加载数据库的Driver之后，就可以使用Groovy提供的Sql类去执行SQL来初始化数据库了。代码如下：
+groovy.sql.Sql oracleSql = 
+ Sql.newInstance(props.getProperty('database.connection.url'),
+                props.getProperty('database.userid'),
+                props.getProperty('database.password'),
+                props.getProperty('database.connection.driver'))
+
+try {
+        new File(script).text.split(";").each {
+            logger.info it
+            oracleSql.execute(it)
+        }
+    } catch (Exception e) { }
+这段代码会初始化执行SQL的groovy.sql.Sql对象，然后按照分号（;）分割SQL脚本文件里的每一条SQL并执行。对于一些必须运行成功的SQL文件，可以在catch块里通过抛出异常来中止数据库的初始化。需要注意的是需要将数据库的Driver加载到ClassPath里才可以正确地执行。
+因为在Gradle中包含了Ant，所以我们除了使用Groovy提供的API来执行SQL之外，还可以使用Ant的sql任务来执行SQL脚本文件。但若非特殊情况，我并不推荐使用Ant任务，这部分内容与本文无关，这里不再细述 。
+3. 代码质量
+代码质量是软件开发质量的一部分，除了人工代码评审之外，在把代码提交到代码库之前，还应该使用自动检查工具来自动检查代码，来保证项目的代码质量。下面介绍一下Gradle提供的支持代码检查的插件 。
+3.1 CheckStyle
+CheckStyle是SourceForge下的一个项目，提供了一个帮助JAVA开发人员遵守某些编码规范的工具。它能够自动化代码规范检查过程，从而使得开发人员从这项重要却枯燥的任务中解脱出来。Gradle官方提供了CheckStyle的插件，在Gradle的构建脚本中只需要应用该插件：
+apply plugin: 'checkstyle'
+默认情况下，该插件会找/config/checkstyle/checkstyle.xml作为CheckStyle的配置文件，可以在checkstyle插件的配置阶段（Configuration） 设置CheckStyle的配置文件：
+checkstyle{
+configFile = file('config/checkstyle/checkstyle-main.xml')
+}
+还可以通过checkstyle设置CheckStyle插件的其他配置。
+3.2 FindBugs
+FindBugs 是一个静态分析工具，它检查类或者 JAR 文件，将字节码与一组缺陷模式进行对比以发现可能的问题。Gradle使用如下的代码为项目的构建脚本添加FindBugs的插件：
+apply plugin: 'findbugs'
+同样也可以在FindBugs的配置阶段（Configuration）设置其相关的属性，比如Report的输出目录、检查哪些sourceSet等。
+3.3 JDepend
+在开发Java项目时经常会遇到关于包混乱的问题， JDepend工具可以帮助你在开发过程中随时跟踪每个包的依赖性（引用/被引用），从而设计高维护性的架构，不论是在打包发布还是版本升级都会更加轻松。在构建脚本中加入如下代码即可：
+apply plugin: 'jdepend'
+3.4 PMD
+PMD是一种开源分析Java代码错误的工具。与其他分析工具不同的是，PMD通过静态分析获知代码错误，即在不运行Java程序的情况下报告错误。PMD附带了许多可以直接使用的规则，利用这些规则可以找出Java源程序的许多问题。此外，用户还可以自己定义规则，检查Java代码是否符合某些特定的编码规范。在构建脚本中加入如下代码：
+apply plugin: 'pmd'
+3.5 小结
+上面提到的几种代码检查插件apply到构建脚本之后，可以运行：
+gradle check
+来执行代码质量检查。更详细的信息请查阅Gradle的官方文档。运行结束后会在对应的项目目录下的build文件夹下生成report。
+对于Gradle没有提供的代码检查工具，我们可以有两种选择：第一就是自己实现一个Gradle插件，第二就是调用Ant任务，让Ant作为一个媒介去调用在Ant中已经有的代码检查工具，比如测试覆盖率的Cobertura。我们的项目使用了Ant来调用Cobertura，但是为了使用方便，我们将它封装为一个Gradle插件，这样就可以在不同的项目里重用。
+4. 依赖
+几乎每个Java项目都会用到开源框架。同时，对于具有多个子模块的项目来说，项目之间也会有所依赖。所以，管理项目中对开源框架和其他模块的依赖是每个项目必须面对的问题。同时，Gradle也使用Repository来管理依赖。
+4.1 Jar包依赖管理
+Maven提出了使用Repository来管理Jar包，Ant也提供了使用Ivy来管理jar包。Gradle提供了对所有这些Respository的支持，可以从Gradle的官方文档上了解更详细的信息。
+Gradle沿用Maven的依赖管理方法，通过groupId、name和version到配置的Repository里寻找指定的Jar包。同样，它也提供了和Maven一样的构建生命周期，compile、runtime、testCompile和testRuntime分别对应项目不同阶段的依赖。通过如下方式为构建脚本指定依赖：
+dependencies {
+    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
+    testCompile group:'junit', name: 'junit', version '4.11'
+}
+这里分别指定group、name以及version，但是Gradle提供了一种更简单的方式来指定依赖：
+dependencies {
+    compile 'org.hibernate:hibernate-core:3.6.7.Final'
+    testCompile 'junit:junit:4.11'
+}
+这样比Maven使用XML来管理依赖简单多了，但是还可以更简单一点。实际上这里的compile和testCompile是Groovy为Gradle提供的方法，可以为其传入多个参数，所以当compile有多个Jar包依赖的时候，可以同时指定到compile里去，代码如下：
+compile(
+        'org.hibernate:hibernate-core:3.6.7.Final',
+            'org.springframework:spring-context:3.1.4.RELEASE'
+)
+另外，当在Respository无法找到Jar包时（如数据库的driver），就可以将这些Jar包放在项目的一个子目录中，然后让项目管理依赖。例如，我们可以在项目的根目录下创建一个lib文件夹，用以存放这些Jar包。使用如下代码可以将其添加到项目依赖中：
+dependencies {
+    compile(
+        'org.hibernate:hibernate-core:3.6.7.Final',
+            'org.springframework:spring-context:3.1.4.RELEASE',
+        fileTree(dir: "${rootProject.projectDir}/lib", include: '*.jar')
+)
+}
+4.2 子项目之间的依赖
+对于多模块的项目，项目中的某些模块需要依赖于其他模块，前面提到在初始化阶段，Gradle为每个模块都创建了一个Project对象，并且可以通过模块的名字引用到该对象。在配置模块之间的依赖时，使用这种方式可以告诉Gradle当前模块依赖了哪些子模块。例如，在我们的项目中，cis-war会依赖core子项目，就可以在cis-war的构建脚本中加上如下代码：
+dependencies {
+    compile(
+        'org.hibernate:hibernate-core:3.6.7.Final',
+             project(':core')
+)
+}
+通过project(':core')来引用core子项目，在构建cis-war时，Gradle会把core加到ClassPath中。
+4.3 构建脚本的依赖
+除了项目需要依赖之外，构建脚本本身也可以有自己的依赖。当使用一个非Gradle官方提供的插件时，就需要在构建脚本里指定其依赖，当然还需要指定该插件的Repository。在Gradle中，使用buildscript块为构建脚本配置依赖。
+比如在项目中使用cucumber-JVM作为项目BDD工具，而Gradle官方没有提供它的插件，好在开源社区有人提供cucumber的插件。在构建脚本中添加如下代码：
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "gradle-cucumber-plugin:gradle-cucumber-plugin:0.2"
+    }
+}
+apply plugin: com.excella.gradle.cucumber.CucumberPlugin
+5. 其他
+5.1 apply其他Gradle文件
+当一个项目很复杂的时候，Gradle脚本也会很复杂，除了将子项目的配置移到对应项目的构建脚本之外，还可以可以按照不同的功能将复杂的构建脚本拆分成小的构建脚本，然后在build.gradle里使用apply from，将这些小的构建脚本引入到整体的构建脚本中去。比如在一个项目中既使用了Jetty，又使用了Cargo插件启动JBoss，就可以把他们分别提到jetty.gradle和jboss.gradle，然后在build.gradle里使用如下的代码将他们引入进来：
+apply from: "jetty.gradle"
+apply from: "jboss.gradle"
+5.2 project的目录
+在脚本文件中，需要访问项目中的各级目录结构。Gradle为Project对象定义了一些属性指向项目的根目录，方便在脚本中引用。
+rootDir：在子项目的脚本文件中可以通过该属性访问到根项目路径。
+rootProject：在子项目中，可以通过该属性获取父项目的Project对象。
+5.3 使用Wrapper指定Gradle的版本
+为了统一项目中Gradle的版本，可以在构建脚本中通过定义一个wrapper的Task，并在该Task中指定Gradle的版本以及存放Gradle的位置。
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.0'
+    archiveBase = 'PROJECT'
+    archivePath = 'gradle/dists'
+}
+运行gradle wrapper， 就会在根项目目录下创建一个wrapper的文件夹，会包含wrapper的Jar包和properties文件。之后就可以使用gradlew来运行task。第一次使用gradlew执行task的时候，会在项目根目录下的gradle/dists下下载你指定的Gradle版本 。这样在项目构建的时候，就会使用该目录下的Gradle，保证整个团队使用了相同的Gradle版本。
+5.4 使用gradle.properties文件
+Gradle构建脚本会自动找同级目录下的gradle.properties文件，在这个文件中可以定义一些property，以供构建脚本使用。例如，我们要使用的Repository需要提供用户名和密码，就可以将其配置在gradle.properties中。这样，每个团队成员都可以修改该配置文件，却不用上传到代码库中对团队其他成员造成影响。可以使用如下的代码定义：
+username=user
+password=password
+在构建脚本中使用"${username} "就可以访问该文件中定义的相关值。
+由于篇幅有限，本文只是我在一个大型Java项目上使用Gradle的部分经验，并未涵盖所有Gradle相关的知识，包括如何编写Gradle插件以及Gradle对其他语言的构建，读者可以通过阅读Gradle的官方文档（比起其他开源软件，Gradle的另一特点就是文档详细）来了解。另外，Gradle是基于Groovy的构建工具，在使用Gradle的时候也需要了解和使用Groovy。所以，在学习Gradle插件的过程中，也能学会Groovy相关的用法，可谓一举两得。
+参考文献:
+[1] CoC: http://en.wikipedia.org/wiki/Convention_over_configuration
+[2] DSL: http://en.wikipedia.org/wiki/Domain-specific_language
+[3] Micro Service Architecture: http://yobriefca.se/blog/2013/04/29/micro-service-architecture/
+[4] Guava: https://code.google.com/p/guava-libraries/
+作者介绍：何海洋，Thoughtworks咨询师，毕业于大连海事大学，有多年软件开发经验，主要从事Java项目的开发。目前在Thoughtworks公司从事敏捷软件开发。
+感谢张逸对本文的审校。
+给InfoQ中文站投稿或者参与内容翻译工作，请邮件至editors@cn.infoq.com。也欢迎大家通过新浪微博（@InfoQ）或者腾讯微博（@InfoQ）关注我们，并与我们的编辑和其他读者朋友交流。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+应用服务器
+Web服务器
+Java
+相关内容
+Java EE 7推出Expression Language 3
+对话《X幻想》贾可：与客户端媲美的Java网页游戏引擎JGnet
+Java EE 7，Spring标准化的Batch
+从Java 9开始，javac的-target和-source命令将不再支持1.5/5及更早版本
+浅析Java EE 7的WebSocket 支持
+
+告诉我们您的想法
+社区评论
+Watch Thread
+说Maven对多模块支持不好，是可以讨论讨论的，说Maven不支持多模块就睁眼说瞎话了 by 许 晓斌 Posted 08/07/2013 07:03
+刚刚将接手的一个项目从 Gradle 转换到 Maven by Bai Hantsy Posted 09/07/2013 06:21
+不太喜欢Groovy这样的语言 by Wang Jim Posted 12/07/2013 02:55
+Re: 不太喜欢Groovy这样的语言 by Lee Vincent Posted 15/07/2013 09:50
+Gradle是以后的趋势 by Fu Cheng Posted 23/07/2013 12:43
+说Maven对多模块支持不好，是可以讨论讨论的，说Maven不支持多模块就睁眼说瞎话了
+08/07/2013 07:03 by 许 晓斌
+说Maven对多模块支持不好，是可以讨论讨论的，说Maven不支持多模块就睁眼说瞎话了
+回复
+回到顶部
+刚刚将接手的一个项目从 Gradle 转换到 Maven
+09/07/2013 06:21 by Bai Hantsy
+刚刚将接手的一个项目从 Gradle 转换到 Maven，目前对企业级开发，Maven 插件如山， Gradle 在这方面连 Ant 都不如。
+
+Gradle 唯一可以比 Ant 强点就是使用 Groovy 直接写一些自定义的任务，这对于熟悉 Groovy 的人有点用。对于不熟悉的人是鸡肋。
+
+对于那一套Build生命周期， Maven 已经太成熟了。 Ant 下Ivy 相关子项目也在开始这方面的工作。
+回复
+回到顶部
+不太喜欢Groovy这样的语言
+12/07/2013 02:55 by Wang Jim
+顺带着不太喜欢Gradle，还是喜欢maven
+回复
+回到顶部
+Re: 不太喜欢Groovy这样的语言
+15/07/2013 09:50 by Lee Vincent
+还是更喜欢Ant+Ivy，简单实用。
+blog.csdn.net/daquan198163/article/details/4768152
+回复
+回到顶部
+Gradle是以后的趋势
+23/07/2013 12:43 by Fu Cheng
+Maven已经是比较过时的技术了，基于XML的配置方式实在是过于繁琐。Maven的确有很多out-of-box的插件，但是问题在于Maven可以很好的处理80%的情况，剩下的20%如果你需要自定义的话，会非常的复杂。这点上我觉得Gradle要好很多。Gradle是给程序员用的，而Maven更多的是给配置管理人员用的。Spring和Hibernate等开源软件都已经切换到Gradle了。
+回复
+回到顶部
 
 -------------第7篇文章----------------
 标题:在Windows Azure公有云环境部署企业应用
-内容:本文主要介绍某个企业将原本在企业数据中心的应用的迁移到Windows Azure上部署的案例。本文主要内容有：对迁移前的应用架构的关键点分析、部署过程中需要调适的配置、可能的不同部署方式等。
+内容:企业内部应用转换为在线服务
+Windows Azure已经成为众多IT服务提供商们热议的话题，其中，有的认为只有提供互连网用户服务的应用才适合放在公有云环境内运行。然而，事实上，在当前Windows Azure环境上，有许多企业也把企业内部的应用放在公有云上，它们包括：
+Web/Brower架构。Web服务器直接放在Windows Azure环境中，方便企业内员工通过HTTPS方式连接到企业内网或互联网访问。特别在跨国企业环境中，这样做可减少公司内部不同国家的办公室之间网络流量。
+Client/Server架构。应用服务器放在Windows Azure环境中，用户端的应用可以部署在PC或移动设备上，方便用户访问。如果考虑网络安全，还可以加上VPN或其他安全保护机制。
+相关厂商内容
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+Martin Thompson，LMAX CTO，大数据处理专家，确认参加QCon上海2013
+首届QCon上海20个专题确认，80余场分享，全面征集演讲主题
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+本文主要介绍某个企业将原本在企业数据中心的应用的迁移到Windows Azure上部署的案例。在该企业的数据中心里，该应用是让企业购买软件后自行部署到物理机的，企业要安排IT人员到客户端去协助维护与更新软件。迁移到Windows Azure中部署成在线服务之后，可以节省原本要另外购买服务器硬件的成本，同时也减少了IT对客户服务的工作量，以后升级及维护的工作可以通过脚本直接在Windows Azure环境中对所有虚拟机和软件进行配置。本文主要内容有：对迁移前的应用架构的关键点分析、部署过程中需要调适的配置、可能的不同部署方式等。Windows Azure应用部署原则按照应用实际运行的最佳环境需求设计。
+以下内容先介绍针对要迁移的应用的架构环境进行调研，然后介绍迁移到Windows Azure的过程。调研工作主要从从硬件、网络、存储、应用等四个方面进行，了解原有环境存在的缺点与客户期望的改进。然后说明迁移到Widnows Azure后的优点以及实现了哪些改进。
+原有应用架构环境调研
+服务器
+对于传统数据中心，用户通过互联网访问服务器上安装的应用，合作伙伴直接开发新的插件上传到服务器并与现有应用集成。每个客户的基本配置是一台网站服务器和一台数据库服务器。企业的传统数据中心环境都采用直接提供物理机的方式，或者由客户自行准备物理机来安装应用。
+迁移到Windows Azure虚拟机环境后可以提高服务器的硬件资源使用效率。
+网络环境
+默认情况下，网络环境应该把不同客户的虚拟机网络都隔离开来，可以使用Vlan ID在同交换机上隔离网络通道。但是因为需要在所有服务器上打补丁（应用本身的补丁与Windows Server, SQL Server的补丁），所以必须与管理服务器连接，这在物理交换机上很容易实现。但是，迁移到Windows Azure环境里之后，就只能使用Azure本身的Virtual Network来做，解决方案会在后面详述。
+存储
+在传统数据中心里，所有的虚拟机文件都是放在物理服务器外部的共享存储中，通过集群解决无理解故障，故障时处理逻辑可以自动迁移到其他物理机上，重启后继续运行。正在使用的服务将会中断，也会存在少量数据丢失的可能，通过数据库回滚技术可以继续正常工作。但是对客户来说，服务质量还需进一步加强。因为成本的限制，共享存储内的数据并没有同步拷贝到其他数据中心。
+应用
+该企业准备迁移的应用属于三层架构，为了简化安装与运营的维护要求，网站与应用被安装在同一台网站服务器内，只有数据库独立安装于一台虚拟机中。应用层已经具备了扩容的功能，可以建立网站服务器资源池，并配置硬件负载平衡器，只要在网站资源池内新增网站服务器然后执行配置更改的脚本就可以提供多台服务器共同提供服务。后端的数据库服务器没有设计为数据水平分散的架构，在硬件的数据库服务器没有做到扩容的功能。
+调研结果
+这是典型的符合从物理机转换到虚拟化环境然后再迁移到Windows Azure的场景。本文主要讨论如何使用Windows Azure解决方案满足客户的期望。以下是四个方面是主要且常见的需求：
+物理机资源使用率提高与虚拟机容错
+网络可以隔离，但是管理环境的网络必须连接到每一部服务器
+数据存储高可用性提升
+应用与数据库扩容
+迁移到WINDOWS AZURE
+物理机资源使用率提高与虚拟机容错
+在Windows Azure环境里不需要去考虑物理机硬件，因为物理机的管理已经由Azure完全负责。
+虚拟机的容错在Azure的环境里是默认存在的，只要选取就行。
+网络可以隔离，但是管理环境网络必须透通
+Azure环境里配置不同的虚拟网络并把不同的客户虚拟机指派到隔离的虚拟网络就可以隔离虚拟机，管理服务器虚拟机则是通过Azure默认提供给每一台虚拟机的公网IP地址来推送补丁即可。此种作法比较简单，直接用原有功能配置即可。但是有以下几点状况必须考虑：
+客户数量增加时，虚拟网络的数量管理变得复杂
+实际压力测试结果，当虚拟机数量增加时，通过公网在所有虚拟机上打补丁会影响到客户用公网连接网站服务器的效能
+考虑上面两点，在此环境的最佳作法是
+减少虚拟网络数量，依照打补丁虚拟机群的设计区分虚拟网络（并非隔离）。在虚拟网络之下新增子网络数量，不同客户的虚拟机放在不同的子网络（仍未隔离）。虚拟机服务器隔离的配置是在增加新的虚拟机时执行配置脚本，用Windows虚拟机本身的防火墙配置开启相同客户的服务器还有管理服务器连接同时阻绝其他的服务器
+因网络层并未隔离，所以打补丁可以走虚拟网络完成工作，不会影响公网的客户连接
+数据存储高可用性提升
+此项目在不同城市的数据中心设置了两个Windows Azure的存储帐号，并把客户的数据在两个Azure数据中心同步，以满足基本的高可用性需求。
+除了这种做法之外，还有其他作法
+比较安全的作法是把数据放在公司网络，网站与应用服务器放在Azure，中间通过Azure的Connect功能建立VPN连接保护资料传输。这种作法安全性高，但是降低了网络效率。
+数据拷贝一份到Azure的存储，部署到Azure里的数据库虚拟机里设置为只读，仅提供查询。要写入的数据仍然导向VPN连接到公司网络的数据库服务器上处理。此种方法应用代码修改多，数据更新稍慢。
+应用与数据库扩容
+此部分是此项目进行中最精华的部分。原有应用已经有了负载均衡功能，但关键是要有网络硬件的负载平衡器来分配多并发的连接要求，在Windows Azure默认的部署方式默认支持公网IP地址负载平衡，只要在加入新的虚拟机时选取，可取代原有环境中的硬件负载平衡器。
+图为原有环境中使用WCF服务器的负载平衡，但是如果内部虚拟网络IP地址也有负载平衡的需求，则可以在修改应用代码让网站应用本身去选择连接多部后端服务器。虽然Web Role与Worker Role能够通过虚拟网络内的通道直接进行通讯，但Windows Azure在内部虚拟网络的环境中没有提供负载平衡的功能。要做到内部网络IP地址也能有负载平衡，我们可以自行编写代码完成，
+举例说明：端口10101对应第一个实例，端口10102对应第二个实例，依此类推。Windows Azure SDK 1.7版本内有一个功能——InstanceInput，这个功能可以让用户端应用（或前端网站服务器）直接连接到后端的服务器实例（任选Web Role或是Worker Role）。以下是完整的InstanceInput功能导览：
+用Administrator帐号启动Visual Studio
+建立一个新的”Cloud Service”后，建立一个WCF服务的Web Role命名为WCFServiceRole
+用以下的代码建立一个角色实例
+public string GetData(int value)
+{
+     return string.Format("From {0} - You entered: {1}", RoleEnvironment.
+CurrentRoleInstance.Id, value);
+}
+然后，在服务部署的地方加代码来关闭地址过滤功能
+[ServiceBehavior(AddressFilterMode = AddressFilterMode.Any)]
+因为默认的环境下已经建立的服务会连接特定的端口配置，此代码的作用是停用连接特定端口，所以才能另外配置端口
+在此Solution内部新建一个控制面板命名为”WCFClient”
+按 Ctrl+F5来运行一次这个Solution
+在WCFClient上右单击后点选Add Service Reference…
+在Add Service Reference的对话框内输入服务地址http://127.0.0.1/Service1.svc，然后单击Go，再接着单击ok
+把下方代码加到Main方法，解决命名空间的解析：
+Service1Client client = new Service1Client();
+Console.WriteLine(client.GetData(100));
+client.Close();
+Console.ReadLine();
+右单击WCFClient后点选Debug->Start new instance客户端应该显示From WCFServiceRole_IN_0 – You entered: 100。在控制台窗口中按[Enter]，停止客户端。
+以上步骤只是基本的WCF客户端服务器方案而已，接下来要把InstanceInput端口加入。
+关闭浏览器来停止云服务实例。
+在云服务项目内，双击WCFServiceRole令其弹出属性页。
+点击Endpoint选项卡，然后单击”添加“来添加一个端点。更改端点类型为InstanceInput，再把Private Port改为80，Public Port保留为默认值。这些端口设置可以有所不同。使用此端口范围，以便对应个别实例 -第一个值对应第一个实例，第二个值对应第二个实例，等等。
+点击Configuration选项卡，并更改实例计数为2。
+部署到Azure Cloud Service。
+等到Cloud Service部署完成后，在WCFClient中编辑app.config文件，把客户端复位向到新的服务端点
+<endpoint address="http://{your application}.cloudapp.net/service1.svc"
+ binding="basicHttpBinding"bindingConfiguration="
+BasicHttpBinding_IService1" contract="ServiceReference1.
+IService1"name="BasicHttpBinding_IService1" />
+右单击WCFClient，然后选择Debug->Start new instance客户端应该像步骤10一样运行。如果多运行客户端几次就可以发现，请求会由不同的角色实例接受。
+在上述端点配置修改地址，并使用不同的公共端口InstanceInput端点，以对应到指定的实例。例如，如果公共端口范围为10105至10109，然后http:// {您的应用程序}。cloudapp.net：10105/service1.svc可解析到第一个实例，http:// {您的应用程序}。cloudapp.net：10106/service1.svc可解析到第二个实例。
+小结
+直接使用Windows Azure的功能就可以快速将企业内部应用迁移到公有云环境。Windows Azure SDK提供了方便好用的代码修改与直接部署应用的环境。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+云计算
+应用服务器
+Web服务器
+部署
+.NET
+企业
+Java
+PaaS
+Azure
+相关内容
+Windows Azure 扩展了MBaaS支持自定义 API和Git
+Linux现可运行于Windows Azure上
+“闰年虫”引发Windows Azure中断
+适用于多种设备的Windows Azure Toolkit现已推出Android版
+使用功能开关更好地实现持续部署
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
 -------------第8篇文章----------------
 标题:对话百度前端工程师张云龙：F.I.S与前端工业化
-内容:F.I.S，全称Front-end Integrated Solution，即前端集成解决方案。在这个访谈中，F.I.S项目负责人，百度前端工程师张云龙介绍了该项目的诞生背景，并讨论了为何选用Node.js，如何使用F.I.S提高前端团队工作效率等话题。
+内容:6月30日举行的第39期百度技术沙龙活动中，百度前端工程师、F.I.S项目技术负责人张云龙分享了“F.I.S 2.0 全新的百度前端解决方案”。在演讲中，张云龙介绍了F.I.S的产生背景和架构、前端开发需要满足的最小规则集合、F.I.S如何满足这些需求、前端开发过程中的一些最佳实践，以及F.I.S三种工作模式（release/install/server）的原理。
+会后，InfoQ就F.I.S对张云龙进行了采访。
+InfoQ：请为我们介绍一下F.I.S，它究竟是什么？
+张云龙：F.I.S，全称Front-end Integrated Solution，即前端集成解决方案。
+我们发现，不管哪个前端团队，不管他们的产品有多大差别，在发展的过程中总会渐渐形成一套配合自己产品开发的【项目规范】+【前端框架】+【模板框架】+【自动化工具】+【辅助开发工具】，这些技术需求的总和就是F.I.S。
+经过一年半的努力，我们和众多产品线前端团队共同探索出一套前端集成解决方案。我们相信，在支持了百度30多条产品线，覆盖从PC到移动端的众多项目之后，我们所总结的F.I.S系统是具有普适性的，它能够快速应用到绝大多数公司的前端团队中，并有效的提升其生产力水平。F.I.S在百度孕育的过程中的经历和思考，以及F.I.S系统演变等“思想产物”对其他公司的前端团队来说，在寻找提升前端生产力水平解决方案的道路上也有许多可借鉴之处。
+相关厂商内容
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+百度App Engine支持PHP、Python、Java和Node.js等多种语言
+百度技术沙龙第四十一期：自然语言处理技术及互联网应用解析 （2013年8月17日 周六）
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+InfoQ：F.I.S项目是如何诞生的？是什么原因促使百度成立F.I.S团队，开发并着手进行推广？
+张云龙：在F.I.S出现之前，百度的每个前端团队都或多或少有这样一套东西，然而产品线与产品线之间由于采用的技术基础不同，没办法互通有无。而且每个新人加入团队后，只有需要熟悉自己门派的规范、工具和流程后才能上手项目。另外，每个团队都需要投入一定的人力来维护自己的系统。这些工作的成本相当高昂。
+而随着团队规模增大，很多产品线之前设计的系统在大团队下都会出现不同程度的问题。尤其是当性能优化摆上项目议程的时候，面对多人团队，想要较平滑的对页面性能进行优化几乎是不可能的！
+为了解决这些问题，前端研发部顺势成立了F.I.S团队，希望可以找到满足这些技术需求的通用解决方案，能够整合前端开发资源，对系统进行持续的平滑的性能优化，并提升前端团队生产力水平。
+当时，我们面对的是大型互联网公司内部五花八门的前端开发模式，以及各种神秘莫测的自动化工具。直到现在，我都觉得能在这样大规模的互联网公司内统一前端开发是一件非常了不起的成就。当我们用了一年半的时间，几乎完成百度前端团队统一使用F.I.S 之后，才将过去所做的一切沉淀下来，希望能够为业界贡献一些新的思路和想法。而F.I.S这个产品也作为前端工业化的最佳实践开源出来。
+InfoQ：为何选择Node.js作为F.I.S的基础？
+张云龙：事实上，最开始在百度内部使用的F.I.S是用PHP实现的。由于当时设计思路的局限，我们认为，既然后端模板是Smarty，那就必然需要PHP环境，也就理所当然应该使用PHP作为自动化和辅助开发工具的技术选型。这样一个想当然的决定，使得我们经历了非常漫长且痛苦的开发过程，毕竟PHP不是为了做这样的事而设计的。
+直到今年年初我们才意识到，虽然模板需要PHP环境运行，但并不意味着自动化工具必须用PHP开发！多么浅显的道理，但是，又是多么痛苦的领悟。很快我们把注意力转向了Node.js。它对前端工程师有着非常强的亲和力，有各种基于Node.js的压缩、优化、校验工具，有着极高的运行性能，有npm这样强大的包管理工具……简直就是为自动化和辅助开发工具量身定做的平台嘛！因此我们毫不犹豫的选择用Node.js重写F.I.S。而且在这次重构中，我们认清了F.I.S的本质、理顺了F.I.S要专注的事情和F.I.S系统的层次关系。最终，F.I.S变成了现在大家看到的样子。
+InfoQ：F.I.S如何帮助开发者提升工作效率？
+张云龙：首先强调一点，F.I.S系统包含四个非常重要的部分：【前端组件化框架】+【后端模板框架】+【自动化工具】+【辅助开发工具】。诚然，自动化工具是F.I.S的重要组成部分，但如果把F.I.S单纯当作类似Grunt的自动化工具就太片面了。因此，对于F.I.S如何提升前端开发效率，可以从这几个方面讲起：
+F.I.S提供了一套高效的前端项目编译系统：该系统可以很方便地组织前端编译工具，对项目进行优化、测试、校验、打包等处理。
+F.I.S的自动化工具扩展了前端语言的三种能力：资源定位、内容嵌入、依赖声明。资源定位能力可以帮助系统隔离开发环境和部署环境之间的变化；内容嵌入功能可以帮助工程师解决资源的初等拆分合并问题；依赖声明可以构建大型的组件化系统。这些工作量都会因为接入F.I.S而省掉。
+F.I.S的自动化工具会扫描整个项目的资源生成一张资源表。这张表可以与前后端框架配合，精确地按需加载资源，平滑地优化网站性能，甚至可以利用监控数据来自动优化网站性能，从而实现自适应的网站系统。
+F.I.S的资源表支持命名空间特性：可以将一个大系统拆成几个子系统来维护，子系统之间没有依赖关系，开发、提测互不影响，从而提升团队的并行能力。
+F.I.S的辅助开发工具可以解决工程师的本地调试、数据模拟等问题，解耦前端代码对后端程序的依赖，提升前后端团队的并行开发能力。
+F.I.S的辅助开发工具还提供了自动部署多台联调或测试机的功能，节省了工程师联调和提测的时间。
+百度内部使用的F.I.S系统是有固定技术选型搭配的，因此内部项目初始团队几乎没有选型的成本，F.I.S把开发中的点点滴滴就想进去了。
+InfoQ：F.I.S中带有文件编译，以及若干优化手段，那么如何评价通过F.I.S产出项目的性能？
+张云龙：百度内部使用F.I.S的产品线都有自己的前后端性能统计数据，百度的Web前端研发部也有性能小组来跟踪各产品线的性能指标，这些都会成为衡量F.I.S收益的重要手段。
+性能收益是比较容易衡量的，但F.I.S的另一项收益——生产力提升——比较难以量化。目前还只是从产品线工程师的口碑，以及一些直观的工作量减少上得到反馈。相信在各大互联网公司前端团队的类似项目中，都有遇到这类情况。虽然目前还不能以数据的形式反映F.I.S在生产力提升上的成效，但从迄今为止F.I.S在百度内部的普及程度以及产品线使用之后项目的迭代速度来看，它确实带来了很多收益。
+InfoQ：请为我们介绍一下F.I.S中的静态资源优化，与传统打包的差异吧。
+张云龙：“雅虎14条优化原则”教导我们要减少HTTP请求，传统的静态资源打包策略采用的是简单直观的“文件合并”方式。这种方式在小团队、实验性或内部系统项目上运作的还好，因为它毕竟非常直观。但随着团队规模的壮大，这种策略非但不能优化前端性能，反倒会带来前端性能的恶化。比如Facebook在Velocity China 2010的讲座议题《静态网页资源的管理和优化》中提到的一个传统资源打包都会遇到的尴尬问题：
+出现这一问题的另一典型场景是换肤和国际化。传统资源合并策略难以满足这样的需求。
+最开始，F.I.S的实现思路是针对不同产品线提供不同的打包工具。很快我们就发现，F.I.S团队陷入了不断创造各种版本的打包工具的泥潭，维护成本非常高。这迫使我们寻求通用的打包解决方案。基于资源表的静态资源管理系统就是这样诞生的。
+使用资源表有很多好处：首先，打包成了资源的备份，可以非常方便地控制页面是否输出打包后的结果，线上页面很容易通过query将页面切换为输出零散的资源，以便工程师定位线上问题。其次，基于资源表的静态资源管理系统，在产品线的模板框架层实现了静态资源的调度，使得F.I.S团队不用针对每个产品线写一套独特的打包工具。而资源调度策略可以非常灵活，我们后来还实现了资源的异步加载等功能，极大提升了页面首次渲染的速度。近期，我们还在几个产品线做了静态资源调度统计的实验，通过统计数据来生成最优的打包算法，让网站性能随用户访问而自适应优化。
+InfoQ：在F.I.S中，如何管理框架、插件等资源的，开发者如何添加插件？
+张云龙：F.I.S提供了install命令，可以用来获取各种前端开发资源，比如示例、配置、组件、基础库、框架、甚至前端开发素材等。
+我们后续会努力经营好这个资源和F.I.S的install这个入口，为用户提供优秀的、逐版本的前端开发资源。
+F.I.S的自动化工具/辅助开发系统完全插件化，我们利用npm来扩展F.I.S。而F.I.S的所有插件与F.I.S核心是分离的。如果用户想在项目中使用Coffee Script、LESS、Markdown等语言来开发页面，那么只要在F.I.S安装目录的同级安装这些插件，F.I.S就能自动加载它们。F.I.S提供了11个扩展点，包括编译扩展（6个）、打包扩展（4个）和命令行扩展（1个）。所以大家看到F.I.S的GitHub项目上只有一个fis.js文件，请不要以为F.I.S项目是未完成的，因为那是我们整个系统插件化的结果啊。
+InfoQ：你认为F.I.S最主要的亮点是什么？
+张云龙：【语言能力扩展】、【基于表的静态资源管理系统】与【前端资源聚合】。我觉得这是F.I.S系统最大的三个亮点。
+我们做了这么久的前端集成解决方案，才总结到这样一个结论：前端领域语言只要扩展了资源定位、内容嵌入和依赖声明三种能力，就可以实现绝大多数前端开发需求。有些前端自动化工具采用目录规范来替代资源定位能力，采用开发规范来替代依赖声明能力。这样做固然可行，但大大限制了其解决方案的适用范围。毕竟每个公司、每个团队都有着自己不同的开发理念，我们曾经在“开发规范”这条路上走了很久，回头看看才发现，规范都是浮云。依靠比规范更小的原子规则就可以组合形成规范，它们才是前端自动化工具的“尺规”。
+基于表的静态资源管理系统设计是我们发现的另一块瑰宝。有了它，我们才能实现平滑的性能优化，自适应的网站系统，方便的线上问题定位手段，根据不同浏览器和国家地区投送不同的静态资源。而且资源表只是一种数据结构，与平台无关，很容易让fis平滑地接入到不同类型后端的系统中。
+F.I.S解决了以上开发问题之后，开始向着前端资源聚合迈进。我们希望能将业界优秀的工具、代码、技术等资源聚合起来形成生态系统，让前端工程师最平等快捷的获取前端开发资源，找到所求。所以我们在插件系统设计、资源获取上下了很多功夫，虽然最后的结果看起来很简单，但那是为了让大家能用最低的学习和使用成本获得最大的收益。
+InfoQ：F.I.S起自2011年，那么在过去一年多的时间里，它是如何演进的？
+张云龙：F.I.S系统至今已演化了三代。
+第一代（2011年末~2012年中）： F.I.S团队刚组建，我们还没有认清F.I.S的本质，以为编译就是一切。所以在参考了公司内几个比较大型产品线的前端构建工具之后，我们把其中几个运行的比较好的系统杂糅了一下，得到了第一代F.I.S——项目代号Gaea——并交付百度云相册团队试用。说真的，第一代F.I.S系统实现的很糟糕，给人一种摇摇欲坠的感觉，好像一不小心就会导致崩溃一样。它大量使用了目录规范，尽管这些规范都是来自大产品线经验的总结，但还是很难被新人接受。就这样，一代F.I.S在百度呱呱坠地，或许不那么闪耀，但起码有了一个开始。
+第二代（2012年中~2013年初）：虽然一开始比较艰难，但好在靠着产品线同事的大力支持和团队每个人骨子里的那种倔强精神，我们挺过了F.I.S最艰难的时期。后来，随着F.I.S的不断铺开，我们开始面对大团队、大规模产品线的开发需求，同时也增加了对移动开发的支持。这一代F.I.S项目的内部代号是Oak，其功能处于快速增长期。我们很善于使用编译工具来解决前端开发中遇到的各种问题，与此同时也衍生出了很多针对特定终端的开发模式，包括PC、Mobile、WebApp甚至RIA等。也正是在这个时期，我们设计出了基于表的静态资源管理系统，而且F.I.S的后台界面也变得相当华丽，整个F.I.S系统的代码已增至8万行！但是很快我们意识到，肆意的使用编译能力，会导致系统产生巨大的黑盒效应。虽然F.I.S系统产出的结果非常高效，但普通工程师对其原理不甚了解，代码难于调试。而F.I.S团队在维护编译工具的路上也越陷越深，自顾不暇。
+第三代（2013年3月至今）：由于2013年初所暴露的种种问题，F.I.S项目的问题开始进入不收敛时期，团队的几个负责人也认识到了问题的严重性，因此组织了几次闭门会议。这几次会议中，我们很严肃的思考了F.I.S的过去与未来，找到了问题的症结，并对关于F.I.S是什么、F.I.S的本质和理念是什么的问题做了很深入的思考。我们重新检查了F.I.S的代码，在将近10万行代码中找到解决前端开发问题的最基本的三条规则，并确定了以资源表为核心的静态资源管理系统设计理念，放弃华丽的后台界面改为命令行交互。最终我们决定，用Node.js重构F.I.S，完成对F.I.S的减法升级！这就是大家现在看到的F.I.S了。
+F.I.S不是某个风和日丽的下午我们一拍脑门想象出来的，所有现在大家看到的结果，都经历了大规模大团队实战的考验。开源以后，希望业界可以看到我们曾经为解决这些棘手问题而沉淀下来的结果，相信这些经验是很值得借鉴的。
+InfoQ：在下一阶段，F.I.S将会向什么方向前进？
+张云龙：后续F.I.S会朝着【前端开发资源聚合】和【高性能前端架构设计】两个方向迈进，我们会不断的开源在公司内部孵化出来的前后端框架、组件、交互体验示例等资源，并对前端性能优化、开发体验、自动化工具、前端项目测试等领域做进一步的探索和研究。我们希望借助F.I.S平台可以不断整合公司内外前端资源，输出优雅高性能的解决方案，以此来提升前端工业生产力水平。
+InfoQ：F.I.S目前的推广情况如何？下一步F.I.S团队对于它的推广有什么打算？
+张云龙：推广才刚刚开始，比起毫无意义的广告和论战，我们团队更注重实际的产出。后续我们还会继续开放出我们在前端工业化领域所做的探索，并不断的将这些经验化作程序可描述的结果通过F.I.S平台输出给大家，我相信这就是最好的推广方式。
+InfoQ：对于行业中，前端工业化整体情况做一些点评和展望吧。
+张云龙：也许是我比较关注这一领域吧，我发现这两年各大互联网公司纷纷开始打造自己的集成解决方案，甚至有专门针对这一领域的岗位招聘，相信大家都已对这个方向的未来心照不宣了。五年前，前端团队能用上或者实现一个前端库来解决常见DOM操作问题已经非常不错了；三年前，前端团队能拥有一套工具来自动压缩代码就已经能解决很多开发问题了；而如今，我们要考虑的更多：框架，工具，库，辅助开发，组件化，性能优化、多终端、国际化、团队协作……新时代的前端集成解决方案是严肃思考的产物， 它能成为前端团队开发的重要利器之一。从过去到现在，从JS库到工具再到集成解决方案，相信前端人在提升生产力水平的道路上会披荆斩棘，不断前进！
+关于嘉宾
+张云龙是来自百度公司Web前端研发部，前端集成解决方案小组的技术负责人，目前负责F.I.S项目，读者可以关注他的微博：http://weibo.com/fouber/。
+领域
+语言 & 开发
+专栏
+前端
+百度
+相关内容
+FIS2.0全新的百度前端解决方案
+百度技术沙龙第39期回顾：前端快速开发实践（含资料下载）
+“百度开放云编程马拉松”新加坡赛区获奖作品及团队介绍
+“百度开放云编程马拉松”台北赛区获奖作品及团队介绍
+百度技术沙龙第40期回顾：定位技术解析与应用开发实战（含资料下载）
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
 -------------第9篇文章----------------
 标题:设计模式自动化
-内容:多数模板代码只是重复地实现那些我们已理解透彻的设计模式，只要我们教会编译器一些技巧，有一些设计模式完全是可以自动实现的。
+内容:简介
+软件开发项目正在变得日趋庞大与复杂。越是复杂的项目，其软件开发与维护的成本越有可能远远超过花费在硬件上的成本。
+软件的规模与其开发和维护的成本之间存在着一种超线性的关系。说到底，庞大且复杂的软件需要优秀的工程师进行开发与维护，而优秀的工程师总是难以吸引的，留住他们的代价也更高昂。
+尽管维护每行代码的成本如此高昂，但我们依然编写了大量的样板代码，而这其中有很大一部分可以由更智能的编译器来替代完成。实际上，多数模板代码只是重复地实现设计模式，而其中一部分模式已被理解得十分透彻，只要我们教会编译器一些技巧，它们完全是可以自动实现的。
+实现观察者模式
+以观察者模式作为例子。这个模式在1995年就已被早早地提出了，并且成为了Model-View-Controller架构成功实现的基础。组成这个模式的各元素在首个版本的Java（1995，Observable接口）和.NET（2001，INotifyPropertyChanged接口）中都得到了实现。虽然这些接口都是框架中的一部分，但还是需要开发者的手动实现。
+INotifyPropertyChanged接口仅包含一个名叫PropertyChanged的事件，当对象的任何一个属性值发生变化时，都需要触发该事件。
+让我们来看一看一个简单的.NET示例：
+相关厂商内容
+InfoQ百度云专题上线，网罗百度云最新报道和深度分享
+虚拟座谈会：PaaS的路由延时问题与架构设计思路
+百度云世界里的“七种武器”：PCS、BAE、Site App、ScreenX等
+安全宝联合创始人吴瀚清担任QCon上海2013系统安全设计面面观专题出品人
+Martin Thompson，LMAX CTO，大数据处理专家，确认参加QCon上海2013
+相关赞助商
+现在加入百度开发者中心(无需提交应用)，了解和享用百度开放云的强大功能。
+public Person : INotifyPropertyChanged
+{
+
+  string firstName, lastName;
+   public event NotifyPropertyChangedEventHandler PropertyChanged;
+
+   protected void OnPropertyChanged(string propertyName)
+  {
+    if ( this.PropertyChanged != null ) {
+         this.PropertyChanged(this, new 
+PropertyChangedEventArgs(propertyName));
+   }
+  }
+
+ public string FirstName
+  {
+   get { return this.firstName; }
+  set
+    {
+       this.firstName = value;
+       this.OnPropertyChanged(“FirstName”);
+       this.OnPropertyChanged(“FullName”);
+  }
+public string LastName
+  {
+   get { return this.lastName; }
+  set
+    {
+       this.lastName = value;
+       this.OnPropertyChanged(“LastName”);
+       this.OnPropertyChanged(“FullName”);
+  }
+  public string FullName { get { return string.Format( “{0} {1}“, 
+this.firstName, this.lastName); }}}
+属性最终依赖于一组字段，一旦我们改变一个字段，那我们就要为一个相关联的属性触发PropertyChanged事件。
+难道编译器不能为我们自动完成这一工作吗？完整的答案是：如果我们考虑到所有可能发生的边界情况，那么要检测字段与属性之间的依赖确实是一项令人望而生畏的任务。因为属性所依赖的字段有可能指向其它对象，这些对象可以调用其它方法。更糟的是，它们还可能调用虚方法或delegate，而编译器却无法确定具体的类型。因此对这个问题来说，如果我们不希望编译时间达到几小时或几天，而是可以在几秒或几分钟内就完成的话，那确实不存在一个通用的解决方案。不过，在真实场景中，编译器是可以理解大多数简单的属性的。因此简短的回答是：是的，在典型的应用中，编译器可以为超过90%的属性生成通知代码。
+在实践中，同样的类可以由以下方式实现：
+[NotifyPropertyChanged]
+public Person
+{
+
+public string FirstName { get; set; }
+public string LastName { get; set; }
+public string FullName { get { return string.Format( “{0} {1}“, 
+this.FirstName, this.LastName); }}
+
+}
+这段代码告诉了编译器要做什么（实现INotifyPropertyChanged），而不是该怎样做。
+样板代码是一种反模式
+观察者（INotifyPropertyChanged）模式仅是在大型应用程序中产生大量样板代码的一个例子，而在典型的代码库中经常充斥着实现各种模式的大量样板代码。即使它们并不总是被认可为“官方的”设计模式，但它们依然是模式，因为它们在代码库中经常重复不断地出现。最常见的代码重复的原因包括：
+追踪、日志
+前置条件与不变式的检测
+授权与审计
+锁定与线程分配
+缓存
+跟踪变化（以实现撤消/重做）
+事务处理
+异常处理
+这些特性难以用寻常的面向对象技术进行封装，这也是造成了它们经常用样板式代码实现的原因。这真的是一件那么糟糕的事吗？
+确实是。
+使用样板代码解决横切关注点（cross-cutting concerns），会最终导致其违反优秀软件工程应遵守的基本原则：
+当一个单一属性的setter方法中的实现囊括了多个关注点的内容，如验证、安全、INotifyPropertyChanged及撤消/重做时，单一职责原则即被违反。
+能够在不修改现有代码的情况下加入新的特性，才是最好地实现了开闭原则，该原则指出，软件实体应该对扩展开放，而对修改关闭。
+不要重复你自己（DRY）原则不能容忍因手工实现设计模式所带来的代码重复。
+当由于某个模式的实现难以更改，而不得不手动实现时，就违反了松耦合原则。请注意，耦合不仅仅产生于两个组件之间，也会产生在组件和概念设计之间。将一个类库替换为另一个实现了相同概念设计的库通常是比较容易的，但要切换为一个不同的设计则需要多得多的源代码改动。
+除此之外，样板会使你的代码：
+在试图理解代码如何实现功能需求时，你会发现它难以阅读并理解其原因。考虑到阅读代码在软件维护中占用了75%的时间，这一层无谓的复杂性对于软件维护是个巨大成本消耗。
+代码更庞大，这不仅意味着生产力的降低，也意味着开发与维护软件的成本提高，更不用说产生bug的风险也增加了。
+难以重构及修改。修改一段样板代码（通常是为了修复某个bug）意味着所有应用该样板的地方都需要一起改变。当某个样板库可能横跨多个解决方案或者是源代码库时，你又如何准确地指出该样板到底在你的整个代码中的哪些地方被用到呢？莫非你打算进行查找与替换吗？
+如果你将那些样板代码置之不理，那它们就会像杂草一样爬满你的代码，每次应用到某个新方面时，都会占用更多的空间。直至某日，你的代码库将会被样板代码所占满。在我之间待过的某个团队中，一个简单的数据访问层的类就有超过1000行的代码，而其中90%的代码是处理各种SQL异常及重试的样板代码。
+我希望你现在已经理解了为什么使用样板代码实现模式是一种糟糕的方式。它实际上是一种反模式，因为它会导致不必要的复杂性、bug、高昂的维护代价、生产力的缺失并最终导致更高的软件成本。
+设计模式自动化与编译器扩展
+很多时候，我们纠结于创建可重用的样板代码的原因，是由于C#和Java这样的主流的静态类型语言缺乏对于元数据编程的原生支持。
+编译器能够获取许多我们在编码时无法得知的信息，如果我们可以从这些信息中受益，并且通过编写编译器扩展以帮助我们实现设计模式，那不是很好吗？
+一个更智能的编译器能允许我们实现以下几点：
+编译时程序转换： 能够使我们在维持现有代码的语义、复杂性以及代码行数的前提下加入新特性，从而使我们能够自动实现某个设计模式中可自动化的一部分。
+静态代码检验：为保证编译时安全，它将确保我们正确地使用了设计模式，或是检查某个模式中不能实现自动化的那些部分是否已按照一系列预定义的规则正确地实现了。
+示例：C#中的“using”和“lock”关键字
+如果你需要证据表明编译器能够直接支持设计模式，只需看看using和lock关键字就可以了。乍一看，这些关键字在C#语言中似乎是多余的，但C#的设计者们意识到了它们的重要性，并专门为它们创建了特有的关键字。
+让我们看一看using关键字，它实际上是整个Disposable模式的一部分，由以下参与者所组成：
+资源对象：占有任何外部资源的对象，例如一个数据库连接。
+资源占用者：在某个特定的生命周期中占有资源对象的指令块或者是对象。
+Disposable模式的规则由下列原则构成：
+资源对象必须实现IDisposable接口。
+IDisposable.Dispose方法的实现必须是冥等的（无副作用的），例如，它可以被安全地调用任意多次。
+资源对象必须包括一个终结器（在C++中叫做析构器）。
+IDisposable.Dispose方法的实现必须调用GC.SuppressFinalize方法。
+通常来说，如果某个对象的字段指向一个资源对象，那么该对象本身也成为资源对象。子资源对象应该由它的父对象来清除。
+分配及占用一个资源对象的指令块必须由using关键字进行修饰（除非对资源的引用是保存在对象本身的状态中，请参见上一点）
+如你所见，Disposable模式实际上比它第一眼看上去要复杂得多。这个模式是怎样自动化并强制地实现的呢？
+NET核心类库提供了IDisposable接口。
+C#编译器提供了using关键字，它会在编译时自动生成某些代码（即一个try/finally语句块）。
+可以使用FxCop定义一个强制的规则，要求所有disposable的类必须实现终结器，并且Dispose方法必须调用GC.SuppressFinalize。
+因此，Disposable模式完美地表现了.NET平台可以直接支持设计模式的实现。
+那么那些没有原生支持的模式呢？它们可以通过组合使用类库及编译器扩展来实现。我们的下一个示例同样来自Microsoft。
+示例：代码契约
+一直以来，对前置条件进行检验（也可选择性地检验后置条件及不变式）被认为是一种能够避免某个组件中的缺陷造成另一个组件出错的最佳实践。具体思路是这样的：
+每个组件（一般来说是指每个类）应该被设计为一个“单元”；
+每个单元为它自己的健壮性负责；
+每个单元都要检查任何一个来自其它单元的输入；
+检验前置条件可以被认为是一种设计模式，因为它是对一个不断发生的问题的可重复的解决方案。
+Microsoft的代码契约就是设计模式自动化的一个完美的例子。它基于原生C#或Visual Basic，为你提供一组API以表达检验规则，规则的具体形式包括前置条件、后置条件和对象不变式。不过，该API不仅仅是一个类库，它还会为你的程序进行编译时转换及检验。
+我不打算深入讲解代码契约过于细节的部分，简单地说，它允许你在代码中指定检验规则，并能够在编译时及运行时进行检查。举例来说：
+public Book GetBookById(Guid id)
+{
+    Contract.Requires(id != Guid.Empty);
+
+    return Dal.Get<Book>(id);
+}
+
+public Author GetAuthorById(Guid id)
+{
+    Contract.Requires(id != Guid.Empty);
+
+    return Dal.Get<Author>(id);
+}
+它的二进制重写工具能够（基于你的设置）重写你编译出的程序集，并注入额外的代码以检查你所设定的各种条件。如果检查一下由二进制重写工具所转换后的代码，你将会看到类似如下代码：
+public Book GetBookById(Guid id)
+  {
+      if (__ContractsRuntime.insideContractEvaluation <= 4)
+      {
+          try
+          { 
+              ++__ContractsRuntime.insideContractEvaluation;
+              __ContractsRuntime.Requires(id != Guid.Empty, (string)null, "id !=
+Guid.Empty");
+          }
+          finally
+          {
+              --__ContractsRuntime.insideContractEvaluation;
+          }
+
+      }
+      public Author GetAuthorById(Guid id)<
+  {
+      if (__ContractsRuntime.insideContractEvaluation <= 4)
+      {
+          try
+          {
+              ++__ContractsRuntime.insideContractEvaluation;
+              __ContractsRuntime.Requires(id != Guid.Empty, (string)null, "id !=
+Guid.Empty");
+          }
+          finally
+          {
+              --__ContractsRuntime.insideContractEvaluation;
+          }
+      }
+      return Dal.Get(id);   }
+关于Microsoft代码契约的更多信息，请在这里阅读Jon Skeet在InfoQ上的优秀文章。
+像代码契约这样的编译期扩展固然很好，但官方推出的扩展往往要花费数年的时间进行开发，直至成熟与稳定。由于存在着这么多不同的领域，每个领域又有着它自身的问题，官方的扩展是不可能覆盖所有这些问题的。
+我们所需要的是一个通用框架，它能以一种纪律性的方式自动化并强制实施设计模式，使得我们自己能够更有效地解决特定于领域的问题。
+自动化并强制实施设计模式的通用框架
+人们可能会想到动态语言、开放式编译器（如Roslyn）或重编译器（如Cecil）等解决方案，因为它们都暴露了抽象语法树的深度细节。但是这些技术是高度抽象层面的操作，导致使用它们实现任何转换都非常复杂，只能用于最简单的一部分。
+我们所需要的是一个编译器扩展的高层次的框架，它基于以下原则：
+提供一系列转换基元，例如：
+注入方法调用；
+在方法执行之前及之后运行代码；
+注入对字段、属性或事件的访问；
+为某个现有类加入接口实现、方法、属性或事件。
+提供某种方式，以表达基元应该应用到何处：告诉编译扩展你需要注入一些代码固然是好事，但更好的是我们能得知哪些方法应该被注入！
+基元必须能够被安全地组合
+在代码中的相同位置应用多种转换是很自然的需求，因此这个框架应该给我们一种组合这些转换的能力。
+当你能够同时应用多种转换时，某些转换也许需要按照特定的顺序进行。因此转换的顺序需要遵循一个定义良好的约定，并且允许我们在适当时重写默认的顺序。
+扩展代码的语义应该不受影响
+转换机制应该保持低调，并尽量减少对原始代码的改动，同时提供对转换进行静态检验的功能。这个框架应该让源代码的意图不要被轻易地“破坏”。
+高级的反射与检验功能 按照定义，设计模式应该包含如何实现它的规则。例如，锁定设计模式应该规定实例字段只能被同一对象的实例方法所访问。这个框架必须提供一种机制以查询方法对某一给定字段的访问，并提供一种方式以产生整洁的编译时错误。
+面向方面编程（AOP）
+面向方面编程是一种编程范式，它旨在于通过允许关注分离以提高模块化。
+“方面”（Aspect）是一种特殊的类，它包括了代码转换（称为通知（Advice））、代码匹配规则（粗略地称为切入点（Pointcut））以及代码检验规则。设计模式通常由一到多个方面实现。将方面应用到代码有多种方式，这主要取决于AOP框架的实现。定制特性（Java中的注解（Annotation））是一种为所选的代码元素加入方面的便利方式，而更复杂的切入点可以由XML声明式地表达（例如Microsoft Policy Injection Application Block）、或一门领域特定语言（例如AspectJ或Spring）进行表述、或使用反射（例如由LINQ配合PostSharp调用System.Reflection）编程实现。
+编织（Weaving）过程将通知与初始源代码在特定的位置（一样粗略地称为连接点）组合在一起，它能够访问初始源代码的元数据，因此对于C#或Java这样的编译语言来说，它就为静态编织者提供了一个执行静态分析的机会，以确保通知与它所应用之处的切入点两者之间关联的有效性。
+虽然面向方面编程与设计模式是各自独立的概念，但AOP对于那些致力于实现设计模式自动化或强制实施设计规则的人来说是个很好的解决方案。与低层次的元数据编程不同，AOP是按照以上介绍的原则设计的，因此不仅仅是编程器专家，任何人都可以通过它实现设计模式。
+AOP是一种编程范式而不是一门技术，也因此它可以通过不同方式实现。在Java阵营中领先的AOP框架AspectJ，现在已经由Eclipse Java编译器直接实现了。而在.NET阵营中，由于编译器未开源的缘故，实现AOP最好的方式是重编译器，将C#或Visual Basic编译器的生成结果进行转换。在.NET中领先的工具是PostSharp（见下）。作为替代方式，某些AOP的子集可以通过动态代理及服务容器（service container）实现，并且多数依赖注入框架都至少能够提供方法注入的实现。
+示例：使用PostSharp定制设计模式
+PostSharp是在Microsoft .NET中自动化并强制实施设计模式的一项开发工具，并以.NET平台下最完整的AOP框架而闻名。
+为了避免把这篇文章变成PostSharp的入门指导，还是让我们来看一个非常简单的模式吧：在一个前台（UI）线程和后台线程中反复地分配某个方法调用。该模式可以由两个简单的方面实现：一个方面将方法调用发送至后台线程，而另一个将方法调用发送至前台线程。这两个方面都可以由免费的PostSharp Express编译。首先来看一下第一个方面：BackgroundThreadAttribute。
+该模式的生成部分非常简单：我们只需创建一个Task以执行方法体，并调度这个Task的执行。
+[Serializable] 
+public sealed class BackgroundThreadAttribute : MethodInterceptionAspect     
+{   
+    public override void OnInvoke(MethodInterceptionArgs args)   
+    {   
+        Task.Run( args.Proceed );   
+    }   
+}
+MethodInterceptionArgs类包含了方法调用的上下文信息，例如参数及返回值。你可以利用这些信息调用原始方法，缓存它的返回值，记录它的输入参数，或者你的用例所要求的任何部分。
+对于该模式的检验部分，我们希望避免将这个定制特性应用到那些具有返回值或是具有某个引用传递的参数的方法上。如果这种情况发生，我们将希望生成一个编译时错误。因此，我们必须在我们的BackgroundThreadAttribute类中实现CompileTimeValidate方法：
+// Check that the method returns 'void', has no out/ref argument.
+public override bool CompileTimeValidate( MethodBase method )
+{
+
+  MethodInfo methodInfo = (MethodInfo) method;
+
+  if ( methodInfo.ReturnType != typeof(void) || 
+       methodInfo.GetParameters().Any( p => p.ParameterType.IsByRef ) )
+  {
+     ThreadingMessageSource.Instance.Write( method, SeverityType.Error, 
+"THR006",
+             method.DeclaringType.Name, method.Name );
+
+     return false;
+  }
+
+  return true;
+}
+ForegroundThreadAttribute看上去也差不多，它使用WPF中的Dispatcher对象，或是调用WinForms中的BeginInvoke方法。
+以上两个方面可以像其它的attribute一样应用，例如：
+[BackgroundThread]
+private static void ReadFile(string fileName)
+{
+    DisplayText( File.ReadAll(fileName) );
+}
+[ForegroundThread]
+private void DisplayText( string content )
+{
+   this.textBox.Text = content; 
+}
+最终源代码会比我们直接调用Task或Dispatcher的方式简洁许多。
+有人可能会争辩道，C# 5.0已经用async和await关键字更好地解决了这个问题。没错，这也是很好的例子，表现了C#团队如何找到一个重复发生的问题，并决定通过在编译器和核心代码库中直接实现某个设计模式以解决该问题。只是.NET的开发者社区必须等到2012才能得到这个方案，而PostSharp早在2006年就提供这个功能了。
+.NET社区还需要为其它通用设计模式的方案等待多久呢？例如INotifyPropertyChanged？那些特定于你的公司的应用框架的设计模式又怎样呢？
+更智能的编译器能允许你实现你自己的设计模式，提高你的团队的生产力也不再依赖于编译器提供商了。
+AOP的不足之处
+我希望我已经说服了你，AOP是自动化设计模式与强制良好设计的一种解决方案，不过，最好能了解到它也存在着一些不足：
+缺乏人员储备
+作为一种范式，AOP并不是一门本科课程的内容，即使在硕士课程中也极少触及。这方面教育的缺乏也一定程度导致了开发者社区内对AOP缺乏一般性的认识。
+尽管AOP已经出现了20年，它依然被误解为一门“新的”范式，这一点经常被证明为许多开发团队不敢采用它的最大障碍，只有最敢冒险的开发团队才敢于应用它。
+设计模式存在的年限也差不多，但设计模式可以被自动实现及检验的想法是近期才出现的。我们在本文中举例说明了一些有意义的先进概念，包括C#编译器、.NET类库以及Visual Studio Code Analysis（FxCop）等等，但这些先进概念还未被归纳为设计模式自动化的一种通用实现。
+惊讶的事实
+由于人员和学生缺乏足够的准备，当他们应用AOP时也许会遇到各种Surprise，因为应用程序中包含了一些附加的行为，而这些行为从源代码中不能直接观察到。注意：所谓令人惊讶的部分，是AOP所期望的效果，这是由于编译器做了些比通常更多的事，而不是指它产生了任何副作用。
+也有某些惊讶是来自于未预计到的效果，某个方面（或某个切入点中）包含的bug可能会导致转换被应用到预计之外的类与方法上。调试这种错误可能会十分微妙，尤其在开发者未意识到某个方面被应用到这个项目中的情况下。
+这些惊讶的事实可以由这些方法解决：
+IDE集成，这有助于以可视化的方式（a）在编辑器中显示哪些附加特性被应用到代码中（b）显示某个指定的方面被应用到哪些代码元素中。在编写本文的时候，还只有两个AOP框架提供对IDE良好的集成：AspectJ（配合AJDT plug-in使用于Eclipse中）与PostSharp（使用于Visual Studio中）.
+开发者的单元测试。方面本身以及它是否被正确地应用，必须和其它源代码一样进行单元测试。
+在为代码应用方面时，不要依赖于命名约定，而是依赖于代码的组织特性，例如类继承或custom attribute。注意，这一讨论并不仅限于AOP，基于约定的编程在近期获得了广泛关注，虽然它的应用也伴随着许多Surprise的产生。
+政策
+使用设计模式自动化一般来说是一种敏感的政策问题，因为它也在一个团队中强调了关注分离的方式。通常情况下，高级开发者会选择设计模式并实现为方面，而初级开发者仅仅是应用它。高级开发者还会编写检验规则，以确保手写的代码符合架构规范。初级开发者不需要了解整个代码结构的这一事实，其实也是所预期的效果。
+处理这一争论通常是比较微妙的，因为它是从一个高级管理者的角度出发，而往往会伤害到初级开发者的自尊心。
+PostSharp模式库中现成的设计模式实现
+如同我们从Disposable模式中所看到的，即使是看上去很简单的设计模式实际上也可能需要复杂的代码转换或验证。某些转换和验证虽然复杂，但还是有可能自动实现的。而其它部分可能对于自动处理来说过于复杂，而不得不手动完成。
+幸运的是，通过使用AOP框架，还是有些简单的设计模式（异常处理、事务处理及安全等等）是每个人都可以轻易地实现为自动化的。
+经过多年的市场经验，PostSharp团队意识到多数客户都在重复地实现相同的方面，于是他们开始为大多数通用的设计模式提供了高精度并且优化的现成实现。
+PostSharp目前已为以下设计模式提供了现成的实现：
+多线程：读写同步（reader-writer-synchronized）线程模型，角色（Actor）线程模型，线程独占模型，线程调度；
+诊断：为各种后台类型，如NLog及Log4Net等提供高性能并且详细的日志记录功能；
+INotifyPropertyChanged：包括对组合属性的支持以及对其它对象的依赖的支持；
+契约：参数、字段及属性的检验。
+现在，使用这些现成的设计模式的实现，开发团队在不必学习AOP的情况下就可以开始享受AOP所带来的好处了。
+总结
+像Java和C#这样所谓的高级语言，它依然强制要求开发者在一个不恰当的抽象层面编写代码。由于主流编译器的限制，开发者被迫编写许多样板式代码，这给应用程序的开发和维护都加重了负担。样板源自于对模式的各种混乱的手工实现，这也许是代码复制-粘贴在此行业中延续至今的使用最多的情况。
+未能实现设计模式的自动化或许使得软件行业平白消耗了数十亿美元，也使得那些软件工程师花费了大量的时间在处理结构体系上的问题，而不是将时间花在增加商业价值上。
+不过，如果有更智能的编译器允许我们自动实现大多数的通用模式，那大量的样板代码就可以被消灭了。希望未来的语言设计者能够领会到：设计模式是现代化软件开发的一等公民，并且应该在编译器中得到适当的支持。
+但实际上并不需要等待新编译器的出现，它们不仅存在，并且已经很成熟了。面向方面编程方法就是为解决样板代码的问题而特别设计的。AspectJ和PostSharp都是这些理念成熟的实现，并且它们已使用在世界上几个最大的公司里了。并且PostSharp和Spring Roo都提供了大多数通用模式的现成的实现。一如既往，先行者能比其它追随者提早好几年获得生产力的提升。
+在四人组的设计模式一书面市18年之后，设计模式也该成年了吧？
+关于作者
+Gael Fraiteur从小就热衷于编程，在他12岁的时候就创建并卖出了他的第一份商业软件。他是PostSharp Technologies公司的创建者兼首席工程师，公司坐落在捷克的布拉格。Gael是一位在面向方面编程领域受到广泛认可的专家，他也常在欧洲及美国的各种开发者会议上进行演讲。
+  Yan Cui是iwl的一位C#及F#开发者，iwl是GameSys公司在伦敦设立的负责社交游戏的部门，专注于为社交游戏创建高分布式及高伸缩性的服务端解决方案，这些游戏运行在Facebook和Hi5等平台上。他经常在英国的本地用户组和技术会议上演讲C#和F#方面的主题，并且也是个活跃的博主。
+  查看英文原文：Design Pattern Automation
+感谢杨赛对本文的审校。
+给InfoQ中文站投稿或者参与内容翻译工作，请邮件至editors@cn.infoq.com。也欢迎大家通过新浪微博（@InfoQ）或者腾讯微博（@InfoQ）关注我们，并与我们的编辑和其他读者朋友交流。
+领域
+架构 & 设计
+语言 & 开发
+专栏
+模式
+.NET
+AOP
+设计
+设计模式
+方法论
+相关内容
+设计模式必须通过面向对象来实现吗？
+服务器端代理拥有事务的设计模式
+采访和书评：精通HTML5和CSS3设计模式
+更加易用的PostSharp
+用PostSharp对.NET做死锁检测
+
+告诉我们您的想法
+社区评论
+Watch Thread
 
