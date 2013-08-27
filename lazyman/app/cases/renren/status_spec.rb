@@ -11,7 +11,7 @@ describe '测试状态功能',:renren do
 
 	it "发布一条状态是否在minifeed显示" do
 	  	$index = $navi.goto_index_page
-		$index.publish @status
+		$index.publish_status @status
 		$index.status_minifeed.should include @status
 	end
 
@@ -44,7 +44,7 @@ describe '测试状态功能',:renren do
 
 	it "状态中@功能是否正常" do
 	  	$index = $navi.goto_index_page
-		$index.publish @status_At
+		$index.publish_status @status_At
 		$index.status_minifeed.should == "@common"
 	end
 

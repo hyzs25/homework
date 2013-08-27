@@ -14,7 +14,7 @@ class NotePublishPage < LazymanPage
 	end
 
 	#提交按钮
-	button :note_submit, :class => 'submit-btn'
+	link :note_submit, :class => 'p-blue-btn'
 	#提交
 	def note_submit_action title,content
 		self.note_title = title

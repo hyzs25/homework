@@ -1,7 +1,7 @@
 #encoding:utf-8
 require File.expand_path 'app/cases/spec_helper'
 
-describe "测试日志模块" , :renrenblog do
+describe "测试日志模块" , :renren do
 
 	before :all do
 		@title = "blog_title #{Time.now.strftime("%Y--%m--%d-%H:%M:%S")}"
@@ -22,7 +22,7 @@ describe "测试日志模块" , :renrenblog do
 
 	it "测试最新日志在列表页中展示正确" do
 		$note_list = $navi.goto_note_list_page
-		$note_list.new_note_title.should == @title
+		$note_list.new_note_title_element.text.should == @title
 	end
 
 	it "测试点击日志标题可正确跳转到终端页" do

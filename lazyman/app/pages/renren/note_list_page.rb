@@ -1,19 +1,17 @@
 #encoding:utf-8
 class NoteListPage < LazymanPage
 
-  page_url "http://page.renren.com/#{$config.pageid}/note"
+  page_url "http://page.renren.com/#{$config.pageid}/channel-notelist"
   
-  #发布日志按钮
-  link :note_publish_button, :class => "add"
-  #日志列表模块
-  div :note_list, :class => 'list-blog'
+  #第一个日志列表模块
+#  div :new_note_list, :class => 'release-text-blog', :index => 0
+
   #第一个日志标题
-  def new_note_title
-     @browser.h3(:class =>'title-article', :index => 0).strong.text
-  end
+  link :new_note_title, :class => 'title', :index => 0
 
   def goto_new_note_detail_page
-    self.note_list_element.link_element(:id => /\d{4}-\d{2}-\d{2}/, :index => 0).when_present.click
+#   self.note_list_element.link_element(:id => /\d{4}-\d{2}-\d{2}/, :index => 0).when_present.click
+    self.new_note_title
     turn_to NoteDetailPage
   end
 
