@@ -29,4 +29,14 @@ describe "测试日志模块" , :renren do
 		$note_detail = $note_list.goto_new_note_detail_page
 		$note_detail.note_title_text.should == @title
 	end
+
+	it "测试日志newsfeed新鲜事是否收到" do
+		$www_index = $navi.goto_www_index_page
+		$www_index.note_feed_title.should == @title
+	end
+
+#	it "测试日志minifeed新鲜事是否收到" do 
+#		$index = $navi.goto_index_page
+		
+
 end

@@ -6,14 +6,28 @@ class IndexPage < LazymanPage
 
 	page_url "http://page.renren.com/#{$config.pageid}"
 
+	#新鲜事模块
+	div :minifeed, :class => "p-feed-title"
+
+	#发布状态按钮--------------------------------------------------
 	link :status_button, :class => 'global-publisher-status-trigger'
 	text_area :status_input, :class => 'status-content'
 	button :input_submit, :class => 'submit'
+	#--------------------------------------------------------------
+	#状态minifeed
 	span :status_minifeed, :class => 'status-detail', :index => 0
 
+	#发布照片按钮--------------------------------------------------
 	link :photo_button, :class => "global-publisher-photo-trigger"
 	div :upload_button, :id => "flashUploadBtn"
 	link :upload_ok, :id => 'uploadBtn'
+	#--------------------------------------------------------------
+
+	#日志minifeed
+	link :note_minifeed do |page|
+		page.minifeed_element.link_element(:class =>'title', :index => 0)
+	end
+
 
 	#发布状态新鲜事
  	def publish_status status

@@ -25,6 +25,10 @@ module FeedModule
 		page.feed_list_element.h3_element(:index => 0)
 	end
 
+	#日志新鲜事标题
+	paragraph :note_feed_title do |page|
+		page.feed_list_element.paragraph_element(:class => "title", :index => 0)
+	end
 
 	#回复新鲜事方法
  	def reply_action content
@@ -34,6 +38,4 @@ module FeedModule
  		self.reply_submit
  		sleep 1
  	end
-
-
 end
