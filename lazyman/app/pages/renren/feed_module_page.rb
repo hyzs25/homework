@@ -5,6 +5,11 @@ module FeedModule
 	#新鲜事模块
 	div :feed_list, :class => 'feed-list'
 
+
+	#展开回复按钮
+	link :reply_button, :class => 'reply-new', :index => 0
+
+
 	#回复框
 	text_area :reply do |page|
 		page.feed_list_element.text_area_element(:index => 0)
