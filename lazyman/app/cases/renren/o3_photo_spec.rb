@@ -5,7 +5,7 @@ require 'win32ole'
 describe "测试相册模块功能", :renren do
 
 	before :all do	
-		@photo1 = '"0.jpg"'
+		@photo1 = 'D:\0.jpg'
 	end
 
 	it "测试单张发布照片功能是否正常" do

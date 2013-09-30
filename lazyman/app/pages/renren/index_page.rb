@@ -3,6 +3,7 @@ require 'win32ole'
 
 class IndexPage < LazymanPage
 #	include FeedModule
+	attr :photo_url
 
 	page_url "http://page.renren.com/#{$config.pageid}"
 
@@ -21,6 +22,9 @@ class IndexPage < LazymanPage
 	link :photo_button, :class => "global-publisher-photo-trigger"
 	div :upload_button, :id => "flashUploadBtn"
 	link :upload_ok, :id => 'uploadBtn'
+
+	#照片的div
+	div :photo_box, :class => "photo-oper-box", :index => 0
 	#--------------------------------------------------------------
 
 	#日志minifeed
@@ -54,6 +58,7 @@ class IndexPage < LazymanPage
 # 		puts @browser.span(:id => 'progressText').text
 #		Watir::Wait.until {@browser.span(:id => 'progressText').text =~ /成功上传/}
 		sleep 2
+#		@photo_url = 
 		@browser.link(:id => 'uploadBtn').when_present.click
 		sleep 1
  	end
