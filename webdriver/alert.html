@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <title>watir处理对话框</title>
+     <script language= "javascript" type="text/javascript">
+            function clickbutton(flag)
+            {
+                if (flag == 1) alert("测试alter对话框");
+                if (flag == 2) prompt("测试prompt对话框");
+                if (flag == 3) confirm('测试confirm对话框', '测试confirm对话框?',"测试结果："); 
+            }
+        </script>
+    </head>
+    
+    <body>
+        <center>
+        <H1>watir处理对话框<H1>
+        <hr>
+        
+        <table border ="2">
+            <tr>
+                <th bgcolor = "#aaaaaa">测试内容</th>
+                <th bgcolor = "#aaaaaa">操作</th>
+            </tr>
+        
+            <tr>
+                <td>文件上传</td>
+                <td><input type="file" name="attach[]" /></td>
+            </tr>
+            
+            <tr>
+                <td>alter对话框</td>
+                <td> 
+                    <input type="button" name="alterbutton" value="测试alter对话框"  onclick = "clickbutton(1);" />
+                </td>
+            </tr>
+            
+            <tr>
+                <td>prompt对话框</td>
+                <td> 
+                    <input type="button" name="promptbutton" value="测试prompt对话框"  onclick = "clickbutton(2);" />
+                </td>
+            </tr>
+            
+            <tr>
+                <td>confirm对话框</td>
+                <td> 
+                    <input type="button" name="confirmbutton" value="测试confirm对话框"  onclick = "clickbutton(3);" />
+                </td>
+            </tr>
+            
+            </table>
+        </center>
+    </body>
+</html>
