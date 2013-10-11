@@ -1,0 +1,21 @@
+<html>
+<head>
+	<meta charset = "utf-8">
+	<title>标题</title>
+	<style>
+		#div1 {background: red; width:200px; height:200px; position:absolute; left:0; top:20;}
+	</style>
+	<script>
+		setInterval(function()
+		{
+			var o1 = document.getElementById("div1");
+			o1.style.left = o1.offsetLeft + 2 + 'px';
+		}, 30);
+
+	</script>
+</head>
+<body>
+	<div id="div1">
+	</div>
+</body>
+</html>

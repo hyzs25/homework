@@ -27,10 +27,6 @@ class IndexPage < LazymanPage
 	div :photo_box, :class => "photo-oper-box", :index => 0
 	#--------------------------------------------------------------
 
-	#照片添加编辑框
-	text_area :photo_discription, :class => 'upload-descript-content', :index => 0
-
-
 	#日志minifeed
 	link :note_minifeed do |page|
 		page.minifeed_element.link_element(:class =>'title', :index => 0)
@@ -47,7 +43,7 @@ class IndexPage < LazymanPage
  	end
 
  	#发布照片
- 	def publish_photo photo, content
+ 	def publish_photo photo
  		self.photo_button
  		self.upload_button_element.when_present
  		self.upload_button_element.click
@@ -60,13 +56,11 @@ class IndexPage < LazymanPage
 		ai.Send('{ENTER}')
 		end
 # 		puts @browser.span(:id => 'progressText').text
-		Watir::Wait.until {@browser.span(:id => 'progressText').text =~ /成功上传/}
+#		Watir::Wait.until {@browser.span(:id => 'progressText').text =~ /成功上传/}
 		sleep 2
-		self.photo_discription = content
 #		@photo_url = 
 		@browser.link(:id => 'uploadBtn').when_present.click
 		sleep 1
-		turn_to PhotoListPage 
  	end
 
 end

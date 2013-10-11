@@ -15,7 +15,6 @@ br.button(:name => "alterbutton").click
 a = br.driver.switch_to.alert
 a.accept
 
-
 #方法3
 br.execute_script("window.alert = function() {}")
 br.button(:name => "alterbutton").click
