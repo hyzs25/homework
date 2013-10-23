@@ -16,4 +16,11 @@ describe "测试相册模块功能", :renrenp do
 		$photo_detail.description.should eq @des_content
 	end
 
+	it "测试minifeed是否收到2038新鲜事" do
+		$index = $navi.goto_index_page
+		puts $index.photo_minifeed.should be =~ /@des_content/
+
+	end
+	
+
 end

@@ -17,7 +17,7 @@ describe '测试状态功能',:renren do
 
 	it "是否收到状态newsfeed新鲜事" do
 		$www_index = $navi.goto_www_index_page
-	    $www_index.status_feed.split(": ")[1].should == @status
+	    $www_index.status_feed.split(": ")[1].should == @status + "1"
 	end
 
 	it "状态列表页是否显示该状态" do

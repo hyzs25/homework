@@ -30,6 +30,15 @@ class IndexPage < LazymanPage
 	#照片添加编辑框
 	text_area :photo_discription, :class => 'upload-descript-content', :index => 0
 
+	#上传中相册名称编辑框
+	text_field :album_name, :id => 'newAlbum0'
+
+	#照片minifeed
+	def photo_minifeed 
+		b = @browser.div(:class => 'upload-images', :index => 0).div(:class => 'action').text
+		return b
+	end
+
 
 	#日志minifeed
 	link :note_minifeed do |page|
@@ -61,8 +70,9 @@ class IndexPage < LazymanPage
 		end
 # 		puts @browser.span(:id => 'progressText').text
 		Watir::Wait.until {@browser.span(:id => 'progressText').text =~ /成功上传/}
-		sleep 2
+		sleep 0.5
 		self.photo_discription = content
+		self.album_name = content
 #		@photo_url = 
 		@browser.link(:id => 'uploadBtn').when_present.click
 		sleep 1
