@@ -1,0 +1,1 @@
+puts File.expand_path(File.join('.', 'alert.html'))
