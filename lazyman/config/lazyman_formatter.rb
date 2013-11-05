@@ -4,13 +4,20 @@ require "fileutils"
 
 module Lazyman
 	class LazymanFormatter < ::RSpec::Core::Formatters::HtmlFormatter
+
 		def initialize(output)
 			@nt = Time.now.strftime("%Y%m%d_%H%M%S")
-			output = File.new(File.expand_path(File.join('.', 'app', 'reports', "#{Time.now.strftime("%Y%m%d_%H%M%S")}.html")), 'w')
+			o = File.expand_path(File.join('.', 'app', 'reports', "#{Time.now.strftime("%Y%m%d_%H%M%S")}.html"))
+			@@out = o
+			output = File.new(@@out, 'w')
 			super(output)
 			@printer.class.send(:define_method, 'puts') do |what|
 				@output.puts what
 			end #define_method
+		end
+
+		def self.out
+			@@out
 		end
 
 		def example_failed(example)

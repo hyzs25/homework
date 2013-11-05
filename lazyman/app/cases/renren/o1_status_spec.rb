@@ -1,7 +1,7 @@
 #encoding:utf-8
 require File.expand_path 'app/cases/spec_helper'
 
-describe '测试状态功能',:renren do 
+describe '测试状态功能',:renrenp do 
 
 	before :all do
 		@status = Time.now.strftime("%Y--%m--%d-%H:%M:%S")

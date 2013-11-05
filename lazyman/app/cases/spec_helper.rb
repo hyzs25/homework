@@ -2,6 +2,9 @@ ENV.delete 'HTTP_PROXY' if ENV['HTTP_PROXY']
 require 'rubygems' #for ruby187
 require 'erb'
 require 'psych'
+require File.expand_path(File.join('.', 'config', "lazyman_formatter.rb"))
+require 'mail'
+#require 'win32ole'
 
 begin
 	require 'lazyman'
@@ -40,6 +43,7 @@ RSpec.configure do |c|
 	end
 	
 	c.before(:suite) do
+		
 		$data = test_data('page')
 		$navi = LazymanNavigator.new $config
 		$navi.driver.manage.window.maximize
@@ -51,6 +55,17 @@ RSpec.configure do |c|
 	end
 
 	c.after(:suite) do
-		$navi.close
+
+		$navi.close		
+		puts a = Lazyman::LazymanFormatter.out
+begin
+		Mail.deliver do
+   			from     'yang.he@renmren-inc.com'
+   			to       'hyzs25@126.com'
+   			subject  'renren_autotest_report'
+   			body     "This is a report!"
+   			add_file a 
+		end
+end
 	end
 end
