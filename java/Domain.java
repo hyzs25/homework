@@ -3,7 +3,7 @@ public class Domain {
 
 	public int firstmethod() {
 		int j = 1;
-		System.out.println("J的值是"+j+"a的值是"+a);
+		System.out.println("J的值是"+j+",a的值是"+a);
 		return 1;
 	}
 
