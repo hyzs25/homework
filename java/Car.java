@@ -1,4 +1,3 @@
-package cn.javass.javatest;
 
 public class Car {
 	private String make;

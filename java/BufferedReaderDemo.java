@@ -9,3 +9,5 @@ public class BufferedReaderDemo {
         System.out.print("请输入一列文字，可包括空白: ");    
         String text = bufferedReader.readLine();    
         System.out.println("您输入的文字: " + text);
+    }
+}
