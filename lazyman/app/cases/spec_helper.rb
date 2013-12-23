@@ -60,12 +60,14 @@ RSpec.configure do |c|
 		puts a = Lazyman::LazymanFormatter.out
 begin
 		Mail.deliver do
-   			from     'yang.he@renmren-inc.com'
-   			to       'hyzs25@126.com'
+   			from     'yang.he@renren-inc.com'
+   			to       'hyzs26@126.com'
    			subject  'renren_autotest_report'
    			body     "This is a report!"
    			add_file a 
 		end
+	rescue 
+		puts "fail to send email````"
 end
 	end
 end

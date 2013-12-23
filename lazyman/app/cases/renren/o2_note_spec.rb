@@ -32,6 +32,7 @@ describe "测试日志模块" , :renren do
 
 	it "测试日志newsfeed新鲜事是否收到" do
 		$www_index = $navi.goto_www_index_page
+		$www_index.page_content_element.click
 		$www_index.note_feed_title.should == @title
 	end
 

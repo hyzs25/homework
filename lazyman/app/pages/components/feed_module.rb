@@ -19,7 +19,7 @@ module FeedModule
 		page.reply_list_element.paragraph_element(:class => 'text', :index => -1)
 	end
 
-	#状态新鲜事内容
+	#状态新鲜事内容  2038照片新鲜事内容
 	h3 :status_feed do |page|
 		page.feed_list_element.h3_element(:index => 0)
 	end

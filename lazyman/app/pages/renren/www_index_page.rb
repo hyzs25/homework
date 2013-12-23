@@ -5,5 +5,7 @@ class WwwIndexPage < LazymanPage
 
 	page_url "http://www.renren.com/#{$config.pageid}"
 
+	#关注内容
+	div :page_content, :id=> 'friend-content'
 
 end

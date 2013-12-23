@@ -1,7 +1,7 @@
 #encoding:utf-8
 require File.expand_path 'app/cases/spec_helper'
 
-describe '测试状态功能',:renrenp do 
+describe '测试状态功能',:renren do 
 
 	before :all do
 		@status = Time.now.strftime("%Y--%m--%d-%H:%M:%S")
@@ -17,7 +17,8 @@ describe '测试状态功能',:renrenp do
 
 	it "是否收到状态newsfeed新鲜事" do
 		$www_index = $navi.goto_www_index_page
-	    $www_index.status_feed.split(": ")[1].should == @status + "1"
+		$www_index.page_content_element.click
+	    $www_index.status_feed.split(": ")[1].should == @status
 	end
 
 	it "状态列表页是否显示该状态" do
@@ -33,6 +34,7 @@ describe '测试状态功能',:renrenp do
 
 	it "回复在newsfeed中可正常展示" do
 		$www_index = $navi.goto_www_index_page
+		$www_index.page_content_element.click
 		$www_index.reply_button
 		$www_index.last_reply.split(": ")[1].should == @reply_content
 	end
@@ -51,6 +53,7 @@ describe '测试状态功能',:renrenp do
 
 	it "状态newsfeed新鲜事@显示是否正常" do
 		$www_index = $navi.goto_www_index_page
+		$www_index.page_content_element.click
 		$www_index.reply_button
 	    $www_index.status_feed.split(": ")[1].should == "@common"
 	end

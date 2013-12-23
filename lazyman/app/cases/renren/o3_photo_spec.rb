@@ -2,7 +2,7 @@
 require File.expand_path 'app/cases/spec_helper'
 require 'win32ole'
 
-describe "测试相册模块功能", :renrenp do
+describe "测试相册模块功能", :renren do
 
 	before :all do	
 		@photo1 = $data['photo']['single_photo']
@@ -18,9 +18,13 @@ describe "测试相册模块功能", :renrenp do
 
 	it "测试minifeed是否收到2038新鲜事" do
 		$index = $navi.goto_index_page
-		puts $index.photo_minifeed.should be =~ /@des_content/
+		puts $index.photo_minifeed.should include @des_content
 
 	end
 	
+	it "测试newsfeed是否收到2038新鲜事" do
+#		$www_index = $
+	end
+
 
 end
