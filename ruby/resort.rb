@@ -7,7 +7,8 @@ def resort(str)
 	new_arr = Array.new
 
 	(len-1).downto(0) do |i|
-		new_arr[i] = str_arr[len-1-i]
+#		new_arr[i] = str_arr[len-1-i]
+		new_arr << str_arr[i]
 	end
 
 	return new_arr.join("")

@@ -17,7 +17,7 @@ describe '测试状态功能',:renren do
 
 	it "是否收到状态newsfeed新鲜事" do
 		$www_index = $navi.goto_www_index_page
-		$www_index.page_content_element.click
+#		$www_index.page_content_element.click
 	    $www_index.status_feed.split(": ")[1].should == @status
 	end
 
@@ -34,7 +34,7 @@ describe '测试状态功能',:renren do
 
 	it "回复在newsfeed中可正常展示" do
 		$www_index = $navi.goto_www_index_page
-		$www_index.page_content_element.click
+#		$www_index.page_content_element.click
 		$www_index.reply_button
 		$www_index.last_reply.split(": ")[1].should == @reply_content
 	end
